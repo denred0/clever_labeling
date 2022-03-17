@@ -7,35 +7,11 @@ import yaml
 import csv
 import datetime
 import torch
+import argparse
 
-from typing import List
 from tqdm import tqdm
 
 from my_utils import recreate_folder, get_all_files_in_folder, get_last_exp_number
-
-
-def replicate_dataset(classes: List,
-                      dataset_path: str,
-                      source_folder: str) -> bool:
-    #
-    if os.path.isdir(source_folder):
-        print(
-            f"Folder \"{source_folder}\" exist!\nIf you want recreate this folder, please, remove folder \"{source_folder}\" manually.")
-        return False
-
-    for cl in tqdm(classes, desc="Copying dataset ..."):
-        shutil.copytree(dataset_path,
-                        os.path.join(os.sep.join(dataset_path.split(os.sep)[:-1]),
-                                     source_folder.split(os.sep)[-1],
-                                     str(classes.index(cl)) + "_" + cl, "data"))
-
-        with open(os.path.join(os.sep.join(dataset_path.split(os.sep)[:-1]),
-                               source_folder.split(os.sep)[-1],
-                               str(classes.index(cl)) + "_" + cl, "obj.names"), 'w') as f:
-            for item in classes:
-                f.write("%s\n" % (item))
-
-    return True
 
 
 def prepare_for_training(data_dir: str,
@@ -88,13 +64,14 @@ def start_training(source_folder_class: str,
                    min_mAP_095: float,
                    sleep_training_sec: int,
                    threshold: float,
-                   nms: float) -> int:
+                   nms: float,
+                   test_split_part: float) -> int:
     #
     data_dir = os.path.join(source_folder_class, "data")
     txts = get_all_files_in_folder(data_dir, ["*.txt"])
 
     if len(txts) >= min_samples_count:
-        prepare_for_training(data_dir, images_ext, split_part=0.2)
+        prepare_for_training(data_dir, images_ext, split_part=test_split_part)
 
         # train
         yaml_path = os.path.join(source_folder_class, "training", "train.yml")
@@ -141,7 +118,13 @@ def start_training(source_folder_class: str,
         return 1
 
 
-def pseudolabeling(data_dir, weights, threshold, nms, image_size, images_ext):
+def pseudolabeling(data_dir: str,
+                   weights: str,
+                   threshold: float,
+                   nms: float,
+                   image_size: int,
+                   images_ext: str) -> None:
+    #
     model = torch.hub.load('ultralytics/yolov5', 'custom', path=weights, force_reload=False)
     model.conf = threshold
     model.iou = nms
@@ -195,40 +178,91 @@ def pseudolabeling(data_dir, weights, threshold, nms, image_size, images_ext):
                         item[3]) + ' ' + str(item[4])))
 
 
+def parse_opt(known=False):
+    parser = argparse.ArgumentParser()
+    parser.add_argument('project_name', type=str, help='project folder name')
+    parser.add_argument('classes_file', type=str, default='obj.names', help='List of classes')
+    parser.add_argument('images_ext', type=str, help='Exstension of images')
+
+    # Training params
+    parser.add_argument('class_for_training', type=str, help='Name of class for training')
+    parser.add_argument('weights', type=str, help='Path to pretraining weights')
+    parser.add_argument('--min_samples_count', type=int, default=200, help='Min count of samples to start training')
+    parser.add_argument('--image_size', type=int, default=640, help='train, val image size (pixels)')
+    parser.add_argument('--batch_size', type=int, default=16)
+    parser.add_argument('--epochs', type=int, default=200)
+    parser.add_argument('--test_split_part', type=float, default=0.2)
+    parser.add_argument('--min_map', type=float, default=0.95, help='Min mAP@:.5:.95 for pseudolabeling')
+    parser.add_argument('--sleep_training_sec', '--sleep', type=int, default=20,
+                        help='Wait before next training attempt (min)')
+    parser.add_argument('--max_attempts', type=int, default=10, help='Max count of attempts')
+
+    # Inference params
+    parser.add_argument('--threshold', '--th', type=float, default=0.8, help='model threshold')
+    parser.add_argument('--nms', type=float, default=0.5, help='model nms')
+
+    opt = parser.parse_known_args()[0] if known else parser.parse_args()
+    return opt
+
+
 if __name__ == "__main__":
-    project_name = "door_smoke"
-    classes_file = f"data/{project_name}/obj.names"
-    with open(classes_file) as file:
+    opt = parse_opt()
+    project_name = opt.project_name
+    # project_name = "door_smoke"
+
+    classes_file = opt.classes_file
+    # classes_file = "obj.names"
+    classes_file_path = f"data/{project_name}/{classes_file}"
+    with open(classes_file_path) as file:
         classes = [line.rstrip() for line in file]
 
     dataset_path = f"data/{project_name}/dataset"
-    images_ext = "jpg"
     source_folder = f"data/{project_name}/labeling"
 
-    need_prepare_dataset = False
-    if need_prepare_dataset:
-        if not replicate_dataset(classes, dataset_path, source_folder):
-            exit()
-
     # training params
-    class_for_training = "door"
+    class_for_training = opt.class_for_training
+    # class_for_training = "door"
+    images_ext = opt.images_ext
+    # images_ext = "jpg"
     source_folder_class = os.path.join(source_folder,
                                        str(classes.index(class_for_training)) + "_" + class_for_training)
-    min_samples_count = 200
-    image_size = 640
-    batch_size = 16
-    epochs = 7
-    weights = "yolov5_weights/yolov5m.pt"
-    min_mAP_095 = 0.5
-    sleep_training_sec = 60 * 20
 
-    # model params
-    threshold = 0.5
-    nms = 0.3
+    min_samples_count = opt.min_samples_count
+    # min_samples_count = 200
+
+    image_size = opt.image_size
+    # image_size = 640
+
+    batch_size = opt.batch_size
+    # batch_size = 16
+
+    epochs = opt.epochs
+    # epochs = 7
+
+    weights = opt.weights
+    # weights = "yolov5_weights/yolov5m.pt"
+
+    min_mAP_095 = opt.min_map
+    # min_mAP_095 = 0.5
+
+    sleep_training_sec = opt.sleep_training_sec * 60
+    # sleep_training_sec = 60 * 20
+
+    test_split_part = opt.test_split_part
+    # test_split_part = 0.2
+
+    # Inference params
+    threshold = opt.threshold
+    # threshold = 0.5
+
+    nms = opt.nms
+    # nms = 0.3
+
+    max_attempts = opt.max_attempts
+    # max_attempts = 10
 
     attempt = 0
-    max_attempts = 10
-    while attempt < 10:
+    while attempt < max_attempts:
         attempt_increment = start_training(source_folder_class,
                                            images_ext,
                                            min_samples_count,
@@ -239,6 +273,6 @@ if __name__ == "__main__":
                                            min_mAP_095,
                                            sleep_training_sec,
                                            threshold,
-                                           nms)
-        min_samples_count += 100
+                                           nms,
+                                           test_split_part)
         attempt += attempt_increment
