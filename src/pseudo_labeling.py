@@ -182,7 +182,7 @@ def parse_opt(known=False):
     parser = argparse.ArgumentParser()
     parser.add_argument('project_name', type=str, help='project folder name')
     parser.add_argument('classes_file', type=str, default='obj.names', help='List of classes')
-    parser.add_argument('images_ext', type=str, help='Exstension of images')
+    parser.add_argument('images_ext', type=str, default='jpg', help='Exstension of images')
 
     # Training params
     parser.add_argument('class_for_training', type=str, help='Name of class for training')
