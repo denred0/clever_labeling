@@ -7,7 +7,7 @@ CL tested together with Yolo_mark (https://github.com/AlexeyAB/Yolo_mark) for la
 ## How it works
 1. You start labeling your data with Yolo_mark.
 2. CL train YOLOv5 on your labeled data so far. 
-3. If mAP@:.5:.95 is more than 0.8 (you can set your value) after training then CL create bboxes for images that you did't label before the current moment.
+3. If mAP@:.5:.95 is more than 0.8 (you can set your value) after training then CL creates bboxes for images that you did't label before the current moment.
 4. If mAP@:.5:.95 is less than 0.8 than CL will wait for 20 minutes (you can set your value) and try again with data that you labeled so far. 
 
 
@@ -27,12 +27,13 @@ pip install -r requirements.txt
 <br>pig
 3. Create folder "dataset" inside your project folder and copy images for labeling to "dataset" folder. 
 4. In result your catalog should be like this:
-<br>animals_detection
-<br>├── classes.txt
-<br>├── dataset
-<br>│   ├── image1.jpg
-<br>│   ├── image2.jpg
-<br>│   ├── image3.jpg
+<br>clever_labeling
+<br>├── animals_detection
+<br>│   ├── classes.txt
+<br>│   ├── dataset
+<br>│   │   ├── image1.jpg
+<br>│   │   ├── image2.jpg
+<br>│   │   ├── image3.jpg
 
 
 ## Spliting data
@@ -43,7 +44,7 @@ python src/prepare_dataset.py %project_folder_name% %classes file name%
 python src/prepare_dataset.py animals_detection classes.txt
 ```
 
-It will create folder labeling with subfolder for every class.<br>You will labeling every class separately. I noticed that it is more precisely and convenient. 
+It will create folder "labeling" with subfolder for every class.<br>You will labeling every class separately. I noticed that it is more precisely and convenient. 
 
 ## Pseudo labeling
 Run script `pseudo_labeling.py`
@@ -75,7 +76,7 @@ python src/pseudo_labeling.py animals_detection classes.txt jpg dog --weights yo
 
 ## Merging results
 
-Now you labeled all classes separately and can merge results. 
+You labeled all classes separately and can merge results. 
 <br>Run script `merge_labels.py`
 ```python
 python src/merge_labels.py %project_folder_name% %images exstension%
