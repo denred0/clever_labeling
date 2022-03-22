@@ -32,7 +32,48 @@ pip install -r requirements.txt
 <br>├── dataset
 <br>│   ├── image1.jpg
 <br>│   ├── image2.jpg
-      - 
+<br>│   ├── image3.jpg
 
 ### Spliting data
-run 
+Run script `prepare_dataset.py`
+```python
+python src/prepare_dataset.py %project_folder_name% %classes file name%
+
+python src/prepare_dataset.py animals_detection classes.txt
+```
+
+It will create folder labeling with subfolder for every class.<br>You will labeling every class separately. I noticed that it is more precisely and convenient. 
+
+### Pseudo labeling
+Run script `pseudo_labeling.py`
+<br>**General parameters**:
+<br>_project_name_ (required) 
+<br>_classes_file_ (required)
+<br>_images_ext_ (required)
+<br>_class_for_training_ (required)
+<br>
+<br> **Train parameters**:
+<br>_--weights_ (optional) default = yolov5_weights/yolov5m.pt
+<br>_--min_samples_count_ (optional) default = 200. Min number of samples to start training.
+<br>_--image_size_ (optional) default = 640
+<br>_--batch_size_ (optional) default = 16
+<br>_--epochs_ (optional) default = 250
+<br>_--test_split_part_ (optional) default = 0.2
+<br>_--min_map_ (optional) default = 0.8. Min mAP@:.5:.95 for pseudolabeling.
+<br>_--sleep_training_min_ (optional) default = 20. Wait before next training attempt (min).
+<br>_--max_attempts_ (optional) default = 10. Max number of attempts.
+<br>
+<br>**Inference params**:
+<br>_--threshold_ (optional) default = 0.9
+<br>_--nms_ (optional) default = 0.5
+
+Example:
+```python
+python src/pseudo_labeling.py animals_detection classes.txt jpg dog --weights yolov5_weights/yolov5m.pt --test_split_part 0.15 --nms 0.6
+```
+
+
+
+### Manual labeling
+Now you can start manually label data for particular class in folder animals_detection/labeling/dog/data for preparing data for first train attempt. 
+When you label 200 images (you can set your value), you can 

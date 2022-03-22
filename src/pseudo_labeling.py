@@ -189,7 +189,7 @@ def parse_opt(known=False):
     # Training params
     parser.add_argument('class_for_training', type=str, help='Name of class for training')
     parser.add_argument('--weights', type=str, default="yolov5_weights/yolov5m.pt", help='Path to pretraining weights')
-    parser.add_argument('--min_samples_count', type=int, default=200, help='Min count of samples to start training')
+    parser.add_argument('--min_samples_count', type=int, default=200, help='Min number of samples to start training')
     parser.add_argument('--image_size', type=int, default=640, help='train, val image size (pixels)')
     parser.add_argument('--batch_size', type=int, default=16)
     parser.add_argument('--epochs', type=int, default=250)
@@ -197,7 +197,7 @@ def parse_opt(known=False):
     parser.add_argument('--min_map', type=float, default=0.80, help='Min mAP@:.5:.95 for pseudolabeling')
     parser.add_argument('--sleep_training_min', '--sleep', type=int, default=20,
                         help='Wait before next training attempt (min)')
-    parser.add_argument('--max_attempts', type=int, default=10, help='Max count of attempts')
+    parser.add_argument('--max_attempts', type=int, default=10, help='Max number of attempts')
 
     # Inference params
     parser.add_argument('--threshold', '--th', type=float, default=0.9, help='model threshold')
