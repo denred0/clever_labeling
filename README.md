@@ -18,7 +18,7 @@ cd clever_labeling
 pip install -r requirements.txt
 ```
 
-### Data Preparation
+## Data Preparation
 1. Create folder with name of your project. For example, "animals_detection". 
 2. Create file with list of classes "classes.txt" inside your project folder. 
 <br>Example of structure of "classes.txt" file:
@@ -34,7 +34,8 @@ pip install -r requirements.txt
 <br>│   ├── image2.jpg
 <br>│   ├── image3.jpg
 
-### Spliting data
+
+## Spliting data
 Run script `prepare_dataset.py`
 ```python
 python src/prepare_dataset.py %project_folder_name% %classes file name%
@@ -44,7 +45,7 @@ python src/prepare_dataset.py animals_detection classes.txt
 
 It will create folder labeling with subfolder for every class.<br>You will labeling every class separately. I noticed that it is more precisely and convenient. 
 
-### Pseudo labeling
+## Pseudo labeling
 Run script `pseudo_labeling.py`
 <br>**General parameters**:
 <br>_project_name_ (required) 
