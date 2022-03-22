@@ -73,3 +73,13 @@ Example:
 python src/pseudo_labeling.py animals_detection classes.txt jpg dog --weights yolov5_weights/yolov5m.pt --test_split_part 0.15 --nms 0.6
 ```
 
+## Merging results
+
+Now you labeled all classes separately and can merge results. 
+<br>Run script `merge_labels.py`
+```python
+python src/merge_labels.py %project_folder_name% %images exstension%
+python src/merge_labels.py animals_detection jpg
+```
+
+This script creates a folder animals_detection/merge_labels/output with resulting markup. 
