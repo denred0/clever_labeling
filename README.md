@@ -19,7 +19,7 @@ pip install -r requirements.txt
 ```
 
 ## Data Preparation
-1. Create folder with name of your project. For example, "animals_detection". 
+1. Create a folder "data". Create a folder with name of your project inside "data" folder. For example, "animals_detection". 
 2. Create file with list of classes "classes.txt" inside your project folder. 
 <br>Example of structure of "classes.txt" file:
 <br>dog
@@ -28,12 +28,13 @@ pip install -r requirements.txt
 3. Create folder "dataset" inside your project folder and copy images for labeling to "dataset" folder. 
 4. In result your catalog should be like this:
 <br>clever_labeling
-<br>├── animals_detection
-<br>│   ├── classes.txt
-<br>│   ├── dataset
-<br>│   │   ├── image1.jpg
-<br>│   │   ├── image2.jpg
-<br>│   │   ├── image3.jpg
+<br>├── data
+<br>│   ├── animals_detection
+<br>│   │   ├── classes.txt
+<br>│   │   ├── dataset
+<br>│   │   │   ├── image1.jpg
+<br>│   │   │   ├── image2.jpg
+<br>│   │   │   ├── image3.jpg
 
 
 ## Spliting data
