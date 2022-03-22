@@ -75,6 +75,8 @@ Example:
 python src/pseudo_labeling.py animals_detection classes.txt jpg dog --weights yolov5_weights/yolov5m.pt --test_split_part 0.15 --nms 0.6
 ```
 
+This script creates a folder "animals_detection/labeling/dog/**training**" and all training results saved to this folder.
+
 ## Merging results
 
 You labeled all classes separately and can merge results. 
