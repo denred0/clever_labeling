@@ -111,9 +111,11 @@ def start_training(source_folder_class: str,
                            images_ext=images_ext)
             return 1000
         else:
+            print(f"Current time: {datetime.datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d_%H:%M:%S')}")
             time.sleep(sleep_training_sec)
             return 1
     else:
+        print(f"Current time: {datetime.datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d_%H:%M:%S')}")
         time.sleep(sleep_training_sec)
         return 1
 
@@ -186,19 +188,19 @@ def parse_opt(known=False):
 
     # Training params
     parser.add_argument('class_for_training', type=str, help='Name of class for training')
-    parser.add_argument('weights', type=str, help='Path to pretraining weights')
+    parser.add_argument('--weights', type=str, default="yolov5_weights/yolov5m.pt", help='Path to pretraining weights')
     parser.add_argument('--min_samples_count', type=int, default=200, help='Min count of samples to start training')
     parser.add_argument('--image_size', type=int, default=640, help='train, val image size (pixels)')
     parser.add_argument('--batch_size', type=int, default=16)
-    parser.add_argument('--epochs', type=int, default=200)
+    parser.add_argument('--epochs', type=int, default=250)
     parser.add_argument('--test_split_part', type=float, default=0.2)
-    parser.add_argument('--min_map', type=float, default=0.95, help='Min mAP@:.5:.95 for pseudolabeling')
-    parser.add_argument('--sleep_training_sec', '--sleep', type=int, default=20,
+    parser.add_argument('--min_map', type=float, default=0.80, help='Min mAP@:.5:.95 for pseudolabeling')
+    parser.add_argument('--sleep_training_min', '--sleep', type=int, default=20,
                         help='Wait before next training attempt (min)')
     parser.add_argument('--max_attempts', type=int, default=10, help='Max count of attempts')
 
     # Inference params
-    parser.add_argument('--threshold', '--th', type=float, default=0.8, help='model threshold')
+    parser.add_argument('--threshold', '--th', type=float, default=0.9, help='model threshold')
     parser.add_argument('--nms', type=float, default=0.5, help='model nms')
 
     opt = parser.parse_known_args()[0] if known else parser.parse_args()
@@ -245,7 +247,7 @@ if __name__ == "__main__":
     min_mAP_095 = opt.min_map
     # min_mAP_095 = 0.5
 
-    sleep_training_sec = opt.sleep_training_sec * 60
+    sleep_training_sec = opt.sleep_training_min * 60
     # sleep_training_sec = 60 * 20
 
     test_split_part = opt.test_split_part

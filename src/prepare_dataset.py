@@ -42,12 +42,12 @@ def parse_opt(known=False):
 
 
 if __name__ == "__main__":
-    opt = parse_opt()
-    project_name = opt.project_name
-    # project_name = "door_smoke"
+    # opt = parse_opt()
+    # project_name = opt.project_name
+    project_name = "evraz_person"
 
-    classes_file = opt.classes_file
-    # classes_file = "obj.names"
+    # classes_file = opt.classes_file
+    classes_file = "classes.txt"
 
     classes_file_path = f"data/{project_name}/{classes_file}"
     with open(classes_file_path) as file:
