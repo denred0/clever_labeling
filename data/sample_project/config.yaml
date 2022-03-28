@@ -1,0 +1,24 @@
+# Parameters for preparing dataset
+project_name: sample_project  # name of root project folder
+classes_file: classes.txt  # file with list of classes
+image_exstension: jpg
+
+
+# Training parameters
+test_split_part: 0.2
+init_weights_path: yolov5_weights/yolov5m.pt
+min_samples_count: 200
+model_input_image_size: 640
+batch_size: 16
+max_epochs: 250
+min_epochs: 150
+resume_epochs: 50
+min_map: 0.8
+count_of_epochs_min_map: 10
+sleep_training_min: 20
+max_training_attempts: 10
+
+# Inferece parameters
+threshold: 0.9
+nms: 0.5
+number_of_images_to_markup: 100

@@ -281,6 +281,7 @@ def train(hyp,  # path/to/hyp.yaml or hyp dictionary
                 f'Using {train_loader.num_workers * WORLD_SIZE} dataloader workers\n'
                 f"Logging results to {colorstr('bold', save_dir)}\n"
                 f'Starting training for {epochs} epochs...')
+    count_of_epochs_min_map = 0
     for epoch in range(start_epoch, epochs):  # epoch ------------------------------------------------------------------
         model.train()
 
@@ -379,6 +380,7 @@ def train(hyp,  # path/to/hyp.yaml or hyp dictionary
                                            compute_loss=compute_loss)
 
             # Update best mAP
+
             fi = fitness(np.array(results).reshape(1, -1))  # weighted combination of [P, R, mAP@.5, mAP@.5-.95]
             if fi > best_fitness:
                 best_fitness = fi
@@ -404,6 +406,13 @@ def train(hyp,  # path/to/hyp.yaml or hyp dictionary
                     torch.save(ckpt, w / f'epoch{epoch}.pt')
                 del ckpt
                 callbacks.run('on_model_save', last, epoch, final_epoch, best_fitness, fi)
+
+            # check mAP for stop training
+            if results[3] >= opt.min_map:
+                count_of_epochs_min_map += 1
+                print(f"Epochs with min mAP: {count_of_epochs_min_map}/{opt.count_of_epochs_min_map}")
+                if count_of_epochs_min_map >= opt.count_of_epochs_min_map and epoch >= opt.min_epochs:
+                    break
 
             # Stop Single-GPU
             if RANK == -1 and stopper(epoch=epoch, fitness=fi):
@@ -485,6 +494,11 @@ def parse_opt(known=False):
     parser.add_argument('--freeze', nargs='+', type=int, default=[0], help='Freeze layers: backbone=10, first3=0 1 2')
     parser.add_argument('--save-period', type=int, default=-1, help='Save checkpoint every x epochs (disabled if < 1)')
     parser.add_argument('--local_rank', type=int, default=-1, help='DDP parameter, do not modify')
+
+    # custom parameters
+    parser.add_argument('--min_map', type=float, help='min_map tostop training')
+    parser.add_argument('--count_of_epochs_min_map', type=int, help='min_map tostop training')
+    parser.add_argument('--min_epochs', type=int, default=100, help='min_epochs')
 
     # Weights & Biases arguments
     parser.add_argument('--entity', default=None, help='W&B: Entity')

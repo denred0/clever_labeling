@@ -1,6 +1,7 @@
 import os
 import shutil
 import argparse
+import yaml
 
 from typing import List
 from tqdm import tqdm
@@ -9,7 +10,7 @@ from tqdm import tqdm
 def replicate_dataset(classes: List,
                       dataset_path: str,
                       source_folder: str,
-                      classes_file:str) -> bool:
+                      classes_file: str) -> bool:
     #
     if os.path.isdir(source_folder):
         print(
@@ -35,19 +36,25 @@ def replicate_dataset(classes: List,
 def parse_opt(known=False):
     parser = argparse.ArgumentParser()
     parser.add_argument('project_name', type=str, help='project folder name')
-    parser.add_argument('classes_file', type=str, default='obj.names', help='List of classes')
 
     opt = parser.parse_known_args()[0] if known else parser.parse_args()
     return opt
 
 
 if __name__ == "__main__":
-    # opt = parse_opt()
-    # project_name = opt.project_name
-    project_name = "evraz_person"
+    opt = parse_opt()
+    project_name = opt.project_name
 
-    # classes_file = opt.classes_file
-    classes_file = "classes.txt"
+    config_file = f"data/{project_name}/config.yaml"
+
+    with open(config_file, "r") as stream:
+        try:
+            config_dict = yaml.safe_load(stream)
+            print(config_dict)
+        except yaml.YAMLError as exc:
+            print(exc)
+
+    classes_file = config_dict['classes_file']
 
     classes_file_path = f"data/{project_name}/{classes_file}"
     with open(classes_file_path) as file:
