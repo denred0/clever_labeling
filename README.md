@@ -1,12 +1,12 @@
 # Clever labeling
-**Clever labeling (CL)** helps create labeling for object detection task. 
+**Clever labeling (CL)** helps to create labeling for object detection task. 
 
 CL tested together with Yolo_mark (https://github.com/AlexeyAB/Yolo_mark) for labeling. 
 
 
 ## How it works
 1. You start labeling your data with Yolo_mark.
-2. CL train YOLOv5 on your labeled data so far. 
+2. CL trains YOLOv5 on your labeled data so far. 
 3. If mAP@:.5:.95 is more than 0.8 (you can set your value) after training then CL creates bboxes for images that you did't label before the current moment.
 4. If mAP@:.5:.95 is less than 0.8 than CL will wait for 20 minutes (you can set your value) and try again with data that you labeled so far. 
 
@@ -26,7 +26,7 @@ pip install -r requirements.txt
 <br>cat
 <br>pig
 3. Create folder "dataset" inside your project folder and copy images for labeling to "dataset" folder. 
-4. In result your catalog should be like this:
+4. As a result your catalog should be like this:
 <br>clever_labeling
 <br>├── data
 <br>│   ├── animals_detection
@@ -45,7 +45,7 @@ python src/prepare_dataset.py %project_folder_name% %classes file name%
 python src/prepare_dataset.py animals_detection classes.txt
 ```
 
-It will create folder "labeling" with subfolder for every class.<br>You will labeling every class separately. I noticed that it is more precisely and convenient. 
+It will create folder "labeling" with subfolder for every class.<br>You will labeling every class separately. I noticed that it is more precise and convenient. 
 
 ## Pseudo labeling
 Run script `pseudo_labeling.py`
@@ -75,7 +75,7 @@ Example:
 python src/pseudo_labeling.py animals_detection classes.txt jpg dog --weights yolov5_weights/yolov5m.pt --test_split_part 0.15 --nms 0.6
 ```
 
-This script creates a folder "animals_detection/labeling/dog/**training**" and all training results saved to this folder.
+This script creates a folder "animals_detection/labeling/dog/**training**" and all training results are saved to this folder.
 
 ## Merging results
 
