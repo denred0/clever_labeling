@@ -57,11 +57,11 @@ python src/train.py animals_detection dog
 This script creates a folder "animals_detection/labeling/dog/**training**" and all training results are saved to this folder.
 
 **Additional parameters:**
-<br>--count_of_images_to_markup - count of images to markup if mAP will be greater than min mAP.
-<br>--min_map - min mAP to achieve during training.
-<br>--resume_weights - path to weights to resume training
+<br>_--count_of_images_to_markup_ - count of images to markup if mAP will be greater than min mAP.
+<br>_--min_map_ - min mAP to achieve during training.
+<br>_--resume_weights_ - path to weights to resume training
 
-If training is success when src/train.py will markup count_of_images_to_markup that you didn't markup so far.   
+If training is success when **src/train.py** will markup count_of_images_to_markup that you didn't markup so far.   
 
 
 ## Pseudo labeling
@@ -72,9 +72,9 @@ python src/labeling.py animals_detection dog
 ```
 
 **Additional parameters:**
-<br>--count_of_images_to_markup - count of images to markup if mAP will be greater than min mAP. 
-<br>--th - min threshold for label sample. 
-<br>--nms. 
+<br>_--count_of_images_to_markup_ - count of images to markup if mAP will be greater than min mAP. 
+<br>_--th_ - min threshold for label sample. 
+<br>_--nms_. 
 
 It will markup count_of_images_to_markup that you didn't markup so far.  
 
