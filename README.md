@@ -25,6 +25,7 @@ pip install -r requirements.txt
 <br>dog
 <br>cat
 <br>pig
+<br>Also you can see example of "classes.txt" in data/sample_project
 3. Create folder "dataset" inside your project folder and copy images for labeling to "dataset" folder. 
 4. As a result your catalog should be like this:
 <br>clever_labeling
@@ -35,47 +36,49 @@ pip install -r requirements.txt
 <br>│   │   │   ├── image1.jpg
 <br>│   │   │   ├── image2.jpg
 <br>│   │   │   ├── image3.jpg
-
+5. Copy "config.yaml" from data/sample_project to folder with your project. You can configure training and pseudolabeling of your project using this "config.yaml".
 
 ## Spliting data
 Run script `prepare_dataset.py`
 ```python
 python src/prepare_dataset.py %project_folder_name% %classes file name%
-
 python src/prepare_dataset.py animals_detection classes.txt
 ```
 
 It will create folder "labeling" with subfolder for every class.<br>You will labeling every class separately. I noticed that it is more precise and convenient. 
 
-## Pseudo labeling
-Run script `pseudo_labeling.py`
-<br>**General parameters**:
-<br>_project_name_ (required) 
-<br>_classes_file_ (required)
-<br>_images_ext_ (required)
-<br>_class_for_training_ (required)
-<br>
-<br> **Train parameters**:
-<br>_--weights_ (optional) default = yolov5_weights/yolov5m.pt
-<br>_--min_samples_count_ (optional) default = 200. Min number of samples to start training.
-<br>_--image_size_ (optional) default = 640
-<br>_--batch_size_ (optional) default = 16
-<br>_--epochs_ (optional) default = 250
-<br>_--test_split_part_ (optional) default = 0.2
-<br>_--min_map_ (optional) default = 0.8. Min mAP@:.5:.95 for pseudolabeling.
-<br>_--sleep_training_min_ (optional) default = 20. Wait before next training attempt (min).
-<br>_--max_attempts_ (optional) default = 10. Max number of attempts.
-<br>
-<br>**Inference params**:
-<br>_--threshold_ (optional) default = 0.9
-<br>_--nms_ (optional) default = 0.5
-
-Example:
-```python
-python src/pseudo_labeling.py animals_detection classes.txt jpg dog --weights yolov5_weights/yolov5m.pt --test_split_part 0.15 --nms 0.6
+## Training
+To start training run:
+```python 
+python src/train.py %project_folder_name% %class_name%
+python src/train.py animals_detection dog
 ```
 
 This script creates a folder "animals_detection/labeling/dog/**training**" and all training results are saved to this folder.
+
+**Additional parameters:**
+<br>--count_of_images_to_markup - count of images to markup if mAP will be greater than min mAP.
+<br>--min_map - min mAP to achieve during training.
+<br>--resume_weights - path to weights to resume training
+
+If training is success when src/train.py will markup count_of_images_to_markup that you didn't markup so far.   
+
+
+## Pseudo labeling
+To start training run:
+```python 
+python src/labeling.py %project_folder_name% %class_name%
+python src/labeling.py animals_detection dog
+```
+
+**Additional parameters:**
+<br>--count_of_images_to_markup - count of images to markup if mAP will be greater than min mAP. 
+<br>--th - min threshold for label sample. 
+<br>--nms. 
+
+It will markup count_of_images_to_markup that you didn't markup so far.  
+
+If you don't like results of labeling you can run **src/train.py** again. In this case **src/train.py** takes all data that you markup so far.  
 
 ## Merging results
 

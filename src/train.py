@@ -69,6 +69,7 @@ def train(source_folder_class: str,
           resume_weights: str,
           resume_epochs: int) -> float:
     #
+    mAP_095 = 0.0
     data_dir = os.path.join(source_folder_class, "data")
     txts = get_all_files_in_folder(data_dir, ["*.txt"])
 
@@ -85,7 +86,7 @@ def train(source_folder_class: str,
                 f"python yolov5/train.py "
                 f"--img {model_input_image_size} "
                 f"--batch {batch_size} "
-                f"--epochs {max_epochs} "
+                f"--epochs {max_epochs + resume_epochs} "
                 f"--data {yaml_path} "
                 # f"--weights {weights} "
                 f"--project {project_path} "
@@ -120,15 +121,15 @@ def train(source_folder_class: str,
                           timestamp + "_mAP_" + str(round(mAP_095, 4))
                           + "_img_count_" + str(len(txts)) + ".txt"), 'a').close()
 
-        return mAP_095
+    return mAP_095
 
 
 def parse_opt(known=False):
     parser = argparse.ArgumentParser()
     parser.add_argument('project_name', type=str, help='project folder name')
     parser.add_argument('class_for_training', type=str, help='Name of class for training')
-    parser.add_argument('--number_of_images_to_markup', '--img_count', type=str,
-                        help='Number of images for labeling')
+    parser.add_argument('--count_of_images_to_markup', '--img_count', type=str,
+                        help='Count of images for labeling')
     parser.add_argument('--min_map', type=float,
                         help='Min mAP for pseudolabeling')
     parser.add_argument('--resume_weights', type=str)
@@ -141,7 +142,7 @@ if __name__ == "__main__":
     opt = parse_opt()
     project_name = opt.project_name
     class_for_training = opt.class_for_training
-    number_of_images_to_markup = opt.number_of_images_to_markup
+    count_of_images_to_markup = opt.count_of_images_to_markup
     min_mAP_095 = opt.min_map
     resume_weights = opt.resume_weights
 
@@ -185,8 +186,8 @@ if __name__ == "__main__":
     # Inference params
     threshold = config_dict['threshold']
     nms = config_dict['nms']
-    if not number_of_images_to_markup:
-        number_of_images_to_markup = config_dict['number_of_images_to_markup']
+    if not count_of_images_to_markup:
+        count_of_images_to_markup = config_dict['number_of_images_to_markup']
 
     attempt = 0
     while attempt < max_training_attempts:
@@ -214,7 +215,7 @@ if __name__ == "__main__":
                            nms=nms,
                            model_input_image_size=model_input_image_size,
                            images_ext=images_ext,
-                           number_of_images_to_markup=number_of_images_to_markup)
+                           count_of_images_to_markup=count_of_images_to_markup)
             attempt = max_training_attempts
         else:
             print(f"Current time: {datetime.datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d_%H:%M:%S')}")

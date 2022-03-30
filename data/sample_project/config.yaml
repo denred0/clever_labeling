@@ -5,20 +5,20 @@ image_exstension: jpg
 
 
 # Training parameters
-test_split_part: 0.2
+test_split_part: 0.2 # train test split for training 80/20
 init_weights_path: yolov5_weights/yolov5m.pt
-min_samples_count: 200
-model_input_image_size: 640
+min_samples_count: 200 # min number of labeling images to start training
+model_input_image_size: 640 # model input resolution
 batch_size: 16
-max_epochs: 250
-min_epochs: 150
-resume_epochs: 50
+max_epochs: 250 # max number of epochs for training
+count_of_epochs_min_map: 10 # number of epochs to get min_map. Training stops when this number achieved
+min_epochs: 150 # min number of epochs for training. Training does not stop until the minimum number of epochs is reached
+resume_epochs: 50 # additional number of epochs for resuming
 min_map: 0.8
-count_of_epochs_min_map: 10
-sleep_training_min: 20
+sleep_training_min: 20 # wait for next training attempt
 max_training_attempts: 10
 
 # Inferece parameters
 threshold: 0.9
 nms: 0.5
-number_of_images_to_markup: 100
+count_of_images_to_markup: 100

@@ -15,7 +15,7 @@ def pseudolabeling(data_dir: str,
                    nms: float,
                    model_input_image_size: int,
                    images_ext: str,
-                   number_of_images_to_markup: int) -> None:
+                   count_of_images_to_markup: int) -> None:
     #
     model = torch.hub.load('ultralytics/yolov5', 'custom', path=weights, force_reload=False)
     model.conf = threshold
@@ -28,11 +28,12 @@ def pseudolabeling(data_dir: str,
     txts = [txt.stem for txt in txts]
 
     images_for_labeling = sorted(list(set(images) - set(txts)))
-    if number_of_images_to_markup == -1:
+    if count_of_images_to_markup == -1:
         images_for_labeling = [imm + "." + images_ext for imm in images_for_labeling]
     else:
-        images_for_labeling = [imm + "." + images_ext for imm in images_for_labeling][:number_of_images_to_markup]
+        images_for_labeling = [imm + "." + images_ext for imm in images_for_labeling][:count_of_images_to_markup]
 
+    labeled = 0
     for im in tqdm(images_for_labeling):
         img = cv2.imread(os.path.join(data_dir, im))
         img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
@@ -67,17 +68,20 @@ def pseudolabeling(data_dir: str,
                 ])
 
         if detections_valid:
+            labeled += 1
             with open(os.path.join(data_dir, im.split(".")[0] + ".txt"), 'w') as f:
                 for item in detections_result:
                     f.write("%s\n" % (str(item[0]) + ' ' + str(item[1]) + ' ' + str(item[2]) + ' ' + str(
                         item[3]) + ' ' + str(item[4])))
+
+    print(f"Labeled images: {labeled}/{len(images_for_labeling)}")
 
 
 def parse_opt(known=False):
     parser = argparse.ArgumentParser()
     parser.add_argument('project_name', type=str, help='project folder name')
     parser.add_argument('class_for_training', type=str, help='Name of class for training')
-    parser.add_argument('--number_of_images_to_markup', '--img_count', type=str,
+    parser.add_argument('--count_of_images_to_markup', '--img_count', type=int,
                         help='Number of images for labeling')
     parser.add_argument('--th', type=float)
     parser.add_argument('--nms', type=float)
@@ -90,7 +94,7 @@ if __name__ == "__main__":
     opt = parse_opt()
     project_name = opt.project_name
     class_for_training = opt.class_for_training
-    number_of_images_to_markup = opt.number_of_images_to_markup
+    count_of_images_to_markup = opt.count_of_images_to_markup
     threshold = opt.th
     nms = opt.nms
 
@@ -126,8 +130,8 @@ if __name__ == "__main__":
     if not nms:
         nms = config_dict['nms']
 
-    if not number_of_images_to_markup:
-        number_of_images_to_markup = config_dict['number_of_images_to_markup']
+    if not count_of_images_to_markup:
+        count_of_images_to_markup = config_dict['number_of_images_to_markup']
 
     pseudolabeling(data_dir,
                    weights,
@@ -135,4 +139,4 @@ if __name__ == "__main__":
                    nms,
                    model_input_image_size,
                    images_ext,
-                   number_of_images_to_markup)
+                   count_of_images_to_markup)
