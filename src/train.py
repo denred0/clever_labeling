@@ -187,7 +187,7 @@ if __name__ == "__main__":
     threshold = config_dict['threshold']
     nms = config_dict['nms']
     if not count_of_images_to_markup:
-        count_of_images_to_markup = config_dict['number_of_images_to_markup']
+        count_of_images_to_markup = config_dict['count_of_images_to_markup']
 
     attempt = 0
     while attempt < max_training_attempts:

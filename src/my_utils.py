@@ -43,9 +43,9 @@ def get_last_exp_number(root_folder):
             if f == "": f = "0"
             folders_exp.append(f)
 
-    if len(folders_exp) == 1:
+    if len(folders_exp) == 1 or len(folders_exp) == 0:
         return ""
-    else :
+    else:
         return max([int(x) for x in folders_exp])
 
 

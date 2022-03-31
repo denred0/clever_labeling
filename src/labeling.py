@@ -81,6 +81,7 @@ def parse_opt(known=False):
     parser = argparse.ArgumentParser()
     parser.add_argument('project_name', type=str, help='project folder name')
     parser.add_argument('class_for_training', type=str, help='Name of class for training')
+    parser.add_argument('--weights', type=str, help='pretraining weights')
     parser.add_argument('--count_of_images_to_markup', '--img_count', type=int,
                         help='Number of images for labeling')
     parser.add_argument('--th', type=float)
@@ -97,6 +98,7 @@ if __name__ == "__main__":
     count_of_images_to_markup = opt.count_of_images_to_markup
     threshold = opt.th
     nms = opt.nms
+    weights = opt.weights
 
     config_file = f"data/{project_name}/config.yaml"
 
@@ -119,10 +121,11 @@ if __name__ == "__main__":
                                        str(classes.index(class_for_training)) + "_" + class_for_training)
 
     data_dir = os.path.join(source_folder_class, "data")
-
-    project_path = os.path.join(source_folder_class, "training", "runs")
-    last_exp_number = get_last_exp_number(project_path)
-    weights = os.path.join(source_folder_class, "training", "runs", "exp" + str(last_exp_number), "weights", "best.pt")
+    if not weights:
+        project_path = os.path.join(source_folder_class, "training", "runs")
+        last_exp_number = get_last_exp_number(project_path)
+        weights = os.path.join(source_folder_class, "training", "runs", "exp" + str(last_exp_number), "weights",
+                               "best.pt")
     model_input_image_size = config_dict['model_input_image_size']
     if not threshold:
         threshold = config_dict['threshold']
@@ -131,7 +134,7 @@ if __name__ == "__main__":
         nms = config_dict['nms']
 
     if not count_of_images_to_markup:
-        count_of_images_to_markup = config_dict['number_of_images_to_markup']
+        count_of_images_to_markup = config_dict['count_of_images_to_markup']
 
     pseudolabeling(data_dir,
                    weights,
