@@ -1,15 +1,18 @@
 import random
 import shutil
 import os
-import cv2
 import time
 import yaml
 import csv
 import datetime
-import torch
+import numpy as np
 import argparse
+import pandas as pd
 
 from tqdm import tqdm
+from numpy import loadtxt
+from datetime import datetime, timedelta
+from sklearn.model_selection import train_test_split
 
 from labeling import pseudolabeling
 from my_utils import recreate_folder, get_all_files_in_folder, get_last_exp_number
@@ -24,17 +27,43 @@ def prepare_for_training(data_dir: str,
         os.mkdir(training_dir)
     recreate_folder(os.path.join(training_dir, "train"))
     recreate_folder(os.path.join(training_dir, "val"))
+
     if not os.path.isdir(os.path.join(training_dir, "runs")):
         os.mkdir(os.path.join(training_dir, "runs"))
+
     if not os.path.isdir(os.path.join(training_dir, "logs")):
         os.mkdir(os.path.join(training_dir, "logs"))
 
-    # copy to train/val
     txts = get_all_files_in_folder(data_dir, ["*.txt"])
-    random.shuffle(txts)
-    train_count = int(len(txts) * (1 - split_part))
+    print(f'Total images: {len(txts)}')
 
-    for i, txt in enumerate(txts):
+    empty_txts = []
+    non_empty_txts = []
+    for txt in tqdm(txts):
+        lines = loadtxt(str(txt), delimiter=' ', unpack=False)
+        if list(lines):
+            non_empty_txts.append(txt)
+        else:
+            empty_txts.append(txt)
+
+    print(f"Labeled images: {len(non_empty_txts)}")
+    print(f"Empty images: {len(empty_txts)}")
+
+    random.shuffle(non_empty_txts)
+    train_count = int(len(non_empty_txts) * (1 - split_part))
+
+    for i, txt in enumerate(non_empty_txts):
+        if i < train_count:
+            shutil.copy(txt, os.path.join(training_dir, "train"))
+            shutil.copy(str(txt.parent) + os.sep + txt.stem + "." + images_ext, os.path.join(training_dir, "train"))
+        else:
+            shutil.copy(txt, os.path.join(training_dir, "val"))
+            shutil.copy(str(txt.parent) + os.sep + txt.stem + "." + images_ext, os.path.join(training_dir, "val"))
+
+    random.shuffle(empty_txts)
+    train_count = int(len(empty_txts) * (1 - split_part))
+
+    for i, txt in enumerate(empty_txts):
         if i < train_count:
             shutil.copy(txt, os.path.join(training_dir, "train"))
             shutil.copy(str(txt.parent) + os.sep + txt.stem + "." + images_ext, os.path.join(training_dir, "train"))
@@ -48,7 +77,7 @@ def prepare_for_training(data_dir: str,
         train="train",
         val="val",
         nc=1,
-        names=[f'{data_dir.split(os.sep)[-2].split("_")[1]}']
+        names=[f'{data_dir.split(os.sep)[-2]}']
     )
 
     with open(os.path.join(training_dir, 'train.yml'), 'w') as outfile:
@@ -177,7 +206,7 @@ if __name__ == "__main__":
     init_weights = config_dict['init_weights_path']
     if not min_mAP_095:
         min_mAP_095 = config_dict['min_map']
-    sleep_training_sec = config_dict['sleep_training_min'] * 60
+    sleep_training_min = config_dict['sleep_training_min']
     test_split_part = config_dict['test_split_part']
     max_training_attempts = config_dict['max_training_attempts']
     count_of_epochs_min_map = config_dict['count_of_epochs_min_map']
@@ -218,6 +247,10 @@ if __name__ == "__main__":
                            count_of_images_to_markup=count_of_images_to_markup)
             attempt = max_training_attempts
         else:
-            print(f"Current time: {datetime.datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d_%H:%M:%S')}")
-            time.sleep(sleep_training_sec)
+            now = datetime.now()
+            next_training_time = now + timedelta(minutes=sleep_training_min)
+
+            print(f"Current mAP {mAP_095} is below than {min_mAP_095}")
+            print(f"Next train in: {next_training_time.strftime('%Y-%m-%d %H:%M:%S')}")
+            time.sleep(sleep_training_min * 60)
             attempt += 1

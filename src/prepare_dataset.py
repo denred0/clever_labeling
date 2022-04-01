@@ -19,16 +19,14 @@ def replicate_dataset(classes: List,
         return False
 
     for cl in tqdm(classes, desc="Copying dataset ..."):
-        shutil.copytree(dataset_path,
-                        os.path.join(os.sep.join(dataset_path.split(os.sep)[:-1]),
-                                     source_folder.split(os.sep)[-1],
-                                     str(classes.index(cl)) + "_" + cl, "data"))
+        shutil.copytree(dataset_path, os.path.join(os.sep.join(dataset_path.split(os.sep)[:-1]),
+                                                   source_folder.split(os.sep)[-1],
+                                                   str(classes.index(cl)) + "_" + cl, "data"))
 
         with open(os.path.join(os.sep.join(dataset_path.split(os.sep)[:-1]),
                                source_folder.split(os.sep)[-1],
                                str(classes.index(cl)) + "_" + cl, classes_file), 'w') as f:
-            for item in classes:
-                f.write("%s\n" % (item))
+            f.write("%s\n" % (cl))
 
     return True
 
