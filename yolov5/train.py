@@ -414,6 +414,10 @@ def train(hyp,  # path/to/hyp.yaml or hyp dictionary
                 if count_of_epochs_min_map >= opt.count_of_epochs_min_map and epoch >= opt.min_epochs:
                     break
 
+            # stop because not enough examples for training
+            if results[3] < 0.05 and epoch == 30:
+                break
+
             # Stop Single-GPU
             if RANK == -1 and stopper(epoch=epoch, fitness=fi):
                 break

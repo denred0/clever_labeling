@@ -20,7 +20,7 @@ def pseudolabeling(data_dir: str,
     model = torch.hub.load('ultralytics/yolov5', 'custom', path=weights, force_reload=False)
     model.conf = threshold
     model.iou = nms
-    model.classes = [int(data_dir.split(os.sep)[-2].split("_")[0])]
+    model.classes = [0]
 
     images = get_all_files_in_folder(data_dir, [f"*.{images_ext}"])
     images = [im.stem for im in images]
