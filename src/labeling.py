@@ -86,6 +86,7 @@ def parse_opt(known=False):
                         help='Number of images for labeling')
     parser.add_argument('--th', type=float)
     parser.add_argument('--nms', type=float)
+    parser.add_argument('--exp', type=str)
 
     opt = parser.parse_known_args()[0] if known else parser.parse_args()
     return opt
@@ -99,6 +100,7 @@ if __name__ == "__main__":
     threshold = opt.th
     nms = opt.nms
     weights = opt.weights
+    exp = opt.exp
 
     config_file = f"data/{project_name}/config.yaml"
 
@@ -123,7 +125,11 @@ if __name__ == "__main__":
     data_dir = os.path.join(source_folder_class, "data")
     if not weights:
         project_path = os.path.join(source_folder_class, "training", "runs")
+
         last_exp_number = get_last_exp_number(project_path)
+        if exp:
+            last_exp_number = exp
+
         weights = os.path.join(source_folder_class, "training", "runs", "exp" + str(last_exp_number), "weights",
                                "best.pt")
     model_input_image_size = config_dict['model_input_image_size']

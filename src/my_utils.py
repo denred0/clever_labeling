@@ -65,5 +65,24 @@ def plot_one_box(im, box, label=None, color=(255, 255, 0), line_thickness=1, wri
     return im
 
 
+def clean_txts():
+    path = "data/evraz_attr/labeling/2_orange_helmet/data"
+    imgs = get_all_files_in_folder(path, ["*.jpg"])
+    imgs = [img.stem for img in imgs]
+    txts = get_all_files_in_folder(path, ["*.txt"])
+    txts = [txt.stem for txt in txts]
+
+    deleted = 0
+    for txt in tqdm(txts):
+        if txt not in imgs:
+            try:
+                os.remove(os.path.join(path, txt + ".txt"))
+                deleted += 1
+            except OSError:
+                pass
+
+    print(f"Deleted: {deleted}")
+
+
 if __name__ == "__main__":
-    pass
+    clean_txts()

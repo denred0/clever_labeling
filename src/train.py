@@ -252,14 +252,19 @@ if __name__ == "__main__":
         if mAP_095 >= min_mAP_095:
             project_path = os.path.join(source_folder_class, "training", "runs")
             last_exp_number = get_last_exp_number(project_path)
-            pseudolabeling(data_dir=os.path.join(source_folder_class, "data"),
-                           weights=os.path.join(source_folder_class, "training", "runs", "exp" + str(last_exp_number),
-                                                "weights", "best.pt"),
-                           threshold=threshold,
-                           nms=nms,
-                           model_input_image_size=model_input_image_size,
-                           images_ext=images_ext,
-                           count_of_images_to_markup=count_of_images_to_markup)
+            print("Training finished!")
+            print(f"Current mAP {mAP_095} is greater than {min_mAP_095}")
+            exp_path = os.path.join(source_folder_class, "training", "runs", "exp" + str(last_exp_number))
+            print(f"Experiment path: {exp_path}")
+
+            # pseudolabeling(data_dir=os.path.join(source_folder_class, "data"),
+            #                weights=os.path.join(source_folder_class, "training", "runs", "exp" + str(last_exp_number),
+            #                                     "weights", "best.pt"),
+            #                threshold=threshold,
+            #                nms=nms,
+            #                model_input_image_size=model_input_image_size,
+            #                images_ext=images_ext,
+            #                count_of_images_to_markup=count_of_images_to_markup)
             attempt = max_training_attempts
         else:
             now = datetime.now()
