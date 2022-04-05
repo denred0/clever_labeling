@@ -415,7 +415,7 @@ def train(hyp,  # path/to/hyp.yaml or hyp dictionary
                     break
 
             # stop because not enough examples for training
-            if results[3] < 0.05 and epoch == 30:
+            if results[3] < 0.05 and epoch == 20:
                 break
 
             # Stop Single-GPU

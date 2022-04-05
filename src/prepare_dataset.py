@@ -5,6 +5,7 @@ import yaml
 
 from typing import List
 from tqdm import tqdm
+from my_utils import read_config
 
 
 def replicate_dataset(classes: List,
@@ -45,12 +46,14 @@ if __name__ == "__main__":
 
     config_file = f"data/{project_name}/config.yaml"
 
-    with open(config_file, "r") as stream:
-        try:
-            config_dict = yaml.safe_load(stream)
-            print(config_dict)
-        except yaml.YAMLError as exc:
-            print(exc)
+    config_dict = read_config(config_file)
+
+    # with open(config_file, "r") as stream:
+    #     try:
+    #         config_dict = yaml.safe_load(stream)
+    #         print(config_dict)
+    #     except yaml.YAMLError as exc:
+    #         print(exc)
 
     classes_file = config_dict['classes_file']
 

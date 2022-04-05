@@ -4,6 +4,7 @@ import shutil
 import numpy as np
 import torch
 import cv2
+import yaml
 from tqdm import tqdm
 
 from typing import List
@@ -63,6 +64,17 @@ def plot_one_box(im, box, label=None, color=(255, 255, 0), line_thickness=1, wri
         im = cv2.putText(im, label, (c1[0], c1[1] - 2), 0, tl / 3, [255, 255, 255], thickness=tf, lineType=cv2.LINE_AA)
 
     return im
+
+
+def read_config(config_path):
+    with open(config_path, "r") as stream:
+        try:
+            config_dict = yaml.safe_load(stream)
+            # print(config_dict)
+        except yaml.YAMLError as exc:
+            print(exc)
+
+    return config_dict
 
 
 def clean_txts():

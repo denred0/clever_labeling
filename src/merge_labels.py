@@ -1,73 +1,149 @@
 import os
 import shutil
 import argparse
+from typing import List
+from collections import defaultdict
 
 from tqdm import tqdm
 from pathlib import Path
 
-from my_utils import get_all_files_in_folder, recreate_folder
+from my_utils import get_all_files_in_folder, recreate_folder, read_config
+from iou import intersection_over_union_box
 
 
-def merge_txts_labels(input_dir: str,
-                      output_dir: str,
-                      image_ext: str) -> None:
+def merge_txts_labels(project_name: str) -> None:
     #
-    label_folders = os.listdir(input_dir)
+    merge_config = read_config(os.path.join("data", project_name, "merge_config.yaml"))
+    classes_to_merge = merge_config['classes_to_merge']
 
-    all_txts_paths = get_all_files_in_folder(input_dir, ["*.txt"])
-    unique_txt_files = list(set([file.name for file in all_txts_paths]))
+    labeling_config = read_config(os.path.join("data", project_name, "labeling_config.yaml"))
+    ext_images = labeling_config['image_exstension']
 
-    for file in tqdm(unique_txt_files):
-        result = []
-        images = []
+    classes_file = labeling_config['classes_file']
+    classes_file_path = os.path.join("data", project_name, classes_file)
+    with open(classes_file_path) as file:
+        classes = {k: v for (k, v) in enumerate([line.rstrip() for line in file])}
 
-        for label_folder in label_folders:
-            file_path = Path(input_dir).joinpath(label_folder).joinpath(file)
-            if os.path.isfile(file_path):
-                with open(file_path) as txt_file:
-                    lines = [line.rstrip() for line in txt_file.readlines()]
+    dataset_dir = os.path.join("data", project_name, "merge", "dataset")
+    recreate_folder(dataset_dir)
 
-                result.extend(lines)
+    iou = merge_config['iou']
+    iou_folder = "1_big_iou"
+    iou_dir = os.path.join("data", project_name, "merge", iou_folder)
+    recreate_folder(iou_dir)
 
-                images.append(Path(input_dir).joinpath(label_folder).joinpath(file.split(".")[0] + "." + image_ext))
+    obligatory_classes = merge_config['obligatory_classes']
+    without_obligatory_classes_folder = "2_without_obligatory_classes"
+    obligatory_classes_dir = os.path.join("data", project_name, "merge", without_obligatory_classes_folder)
+    recreate_folder(obligatory_classes_dir)
 
-        with open(Path(output_dir).joinpath(file), 'w') as f:
-            for line in result:
-                f.write("%s\n" % str(line))
+    empty_images_folder = "3_empty_images"
+    empty_images_dir = os.path.join("data", project_name, "merge", empty_images_folder)
+    recreate_folder(empty_images_dir)
 
-        shutil.copy(images[0], Path(output_dir))
+    all_txts = []
+    count_of_classes = {}
+    for ind, cl in tqdm(classes.items(), desc="Reading classes"):
+        if cl in classes_to_merge:
+            txts = get_all_files_in_folder(os.path.join("data", project_name, "labeling", str(ind) + "_" + cl, "data"),
+                                           ["*.txt"])
+            imgs = get_all_files_in_folder(os.path.join("data", project_name, "labeling", str(ind) + "_" + cl, "data"),
+                                           [f"*.{ext_images}"])
+
+            assert len(txts) == len(imgs)
+            f"Count of images and txts for class {cl} is not equal"
+
+            all_txts.extend(txts)
+
+    dublicates = 0
+    result = defaultdict(list)
+    for txt in tqdm(all_txts, desc="Reading txts"):
+        result.setdefault(txt.stem, [])
+
+        with open(txt) as txt_file:
+            lines = [line.rstrip() for line in txt_file.readlines()]
+
+        if len(set(lines)) != len(lines):
+            dublicates += 1
+            with open(txt, 'x') as f:
+                for line in set(lines):
+                    f.write("%s\n" % str(line))
+
+        label = str(txt).split(os.sep)[-3].split("_")[0]
+
+        for line in set(lines):
+            row = line.split(" ")
+            row[0] = label
+            result[txt.stem].append(" ".join(row))
+
+    without_obligatory_classes_count = 0
+    big_iou_count = 0
+    empty_images_count = 0
+
+    for txt, labels in tqdm(result.items(), desc="Saving"):
+        mandatory_class_exist = False
+        big_iou_exist = False
+        labels = sorted(list(set(labels)))
+        with open(os.path.join("data", project_name, "merge", "dataset", f"{txt}.txt"), 'w') as f:
+            for i in range(len(labels)):
+                f.write("%s\n" % str(labels[i]))
+                count_of_classes[int(labels[i].split()[0])] = count_of_classes.get(int(labels[i].split()[0]), 0) + 1
+
+                for obligatory_classes_list in obligatory_classes:
+                    if classes[int(labels[i].split(" ")[0])] in obligatory_classes_list:
+                        mandatory_class_exist = True
+
+                for j in range(i + 1, len(labels)):
+                    iou_p = intersection_over_union_box([float(x) for x in labels[i].split(" ")[1:]],
+                                                        [float(x) for x in labels[j].split(" ")[1:]])
+                    if iou_p >= iou:
+                        big_iou_exist = True
+
+        shutil.copy(os.path.join("data", project_name, "dataset", f"{txt}.{ext_images}"),
+                    os.path.join("data", project_name, "merge", "dataset"))
+
+        if not labels:
+            empty_images_count += 1
+            shutil.copy(os.path.join("data", project_name, "merge", "dataset", f"{txt}.txt"),
+                        os.path.join("data", project_name, "merge", empty_images_folder))
+            shutil.copy(os.path.join("data", project_name, "dataset", f"{txt}.{ext_images}"),
+                        os.path.join("data", project_name, "merge", empty_images_folder))
+
+        if big_iou_exist:
+            big_iou_count += 1
+            shutil.copy(os.path.join("data", project_name, "merge", "dataset", f"{txt}.txt"),
+                        os.path.join("data", project_name, "merge", iou_folder))
+            shutil.copy(os.path.join("data", project_name, "dataset", f"{txt}.{ext_images}"),
+                        os.path.join("data", project_name, "merge", iou_folder))
+
+        if not mandatory_class_exist and obligatory_classes:
+            without_obligatory_classes_count += 1
+            shutil.copy(os.path.join("data", project_name, "merge", "dataset", f"{txt}.txt"),
+                        os.path.join("data", project_name, "merge", without_obligatory_classes_folder))
+            shutil.copy(os.path.join("data", project_name, "dataset", f"{txt}.{ext_images}"),
+                        os.path.join("data", project_name, "merge", without_obligatory_classes_folder))
+
+    print(f"\nFixed dublicates: {dublicates} ")
+    print(f"Without obligatory classes count: {without_obligatory_classes_count}")
+    print(f"Big IoU count: {big_iou_count}")
+    print(f"Empty images count: {empty_images_count}")
+
+    print("\nCount of labels:")
+    for cl, count in {k: v for k, v in
+                      sorted(count_of_classes.items(), key=lambda item: item[1], reverse=True)}.items():
+        print(f"{classes[cl]}: {count}")
 
 
 def parse_opt(known=False):
     parser = argparse.ArgumentParser()
     parser.add_argument('project_name', type=str, help='project folder name')
-    parser.add_argument('ext_images', type=str, default='jpg', help='Images_ext')
 
     opt = parser.parse_known_args()[0] if known else parser.parse_args()
     return opt
 
 
 if __name__ == "__main__":
-    #проверять дубли и пересекающиеся боксы больше, чем на 0.8 например
-    # еще задать обязательный класс, который точно должен быть на каждом изображении и еще проверять на пустые изображения - вообще без классов
-    # посчитать количество классов
     opt = parse_opt()
-
     project_name = opt.project_name
-    # project_name = "door_smoke"
 
-    ext_images = opt.ext_images
-    # ext_images = "jpg"
-
-    directories = next(os.walk(f"data/{project_name}/labeling"))[1]
-
-    input_dir = "data/door_smoke/merge_labels/input"
-    recreate_folder(input_dir)
-
-    for dir in directories:
-        shutil.copytree(f"data/{project_name}/labeling/{dir}/data", f"{input_dir}/{dir}")
-
-    output_dir = "data/door_smoke/merge_labels/output"
-    recreate_folder(output_dir)
-
-    merge_txts_labels(input_dir, output_dir, ext_images)
+    merge_txts_labels(project_name)

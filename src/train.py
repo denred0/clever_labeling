@@ -14,7 +14,7 @@ from datetime import datetime, timedelta
 from sklearn.model_selection import train_test_split
 
 from labeling import pseudolabeling
-from my_utils import recreate_folder, get_all_files_in_folder, get_last_exp_number
+from my_utils import recreate_folder, get_all_files_in_folder, get_last_exp_number, read_config
 
 import warnings
 
@@ -22,6 +22,7 @@ warnings.filterwarnings("ignore")
 
 
 def prepare_for_training(data_dir: str,
+                         take_last_count: int,
                          images_ext: str,
                          split_part=0.2) -> None:
     # create folders
@@ -50,6 +51,9 @@ def prepare_for_training(data_dir: str,
         else:
             empty_txts.append(txt)
 
+    if take_last_count != -1 and len(non_empty_txts) > take_last_count:
+        non_empty_txts = non_empty_txts[-take_last_count:]
+
     random.shuffle(non_empty_txts)
     train_count = int(len(non_empty_txts) * (1 - split_part))
 
@@ -60,6 +64,9 @@ def prepare_for_training(data_dir: str,
         else:
             shutil.copy(txt, os.path.join(training_dir, "val"))
             shutil.copy(str(txt.parent) + os.sep + txt.stem + "." + images_ext, os.path.join(training_dir, "val"))
+
+    if take_last_count != -1 and len(empty_txts) > take_last_count * 2:
+        empty_txts = empty_txts[-(2 * take_last_count):]
 
     random.shuffle(empty_txts)
     if len(empty_txts) > 2 * len(non_empty_txts):
@@ -93,6 +100,7 @@ def prepare_for_training(data_dir: str,
 def train(source_folder_class: str,
           images_ext: str,
           min_samples_count: int,
+          take_last_count: int,
           model_input_image_size: int,
           batch_size: int,
           max_epochs: int,
@@ -115,7 +123,7 @@ def train(source_folder_class: str,
             non_empty_txts.append(txt)
 
     if len(non_empty_txts) >= min_samples_count:
-        prepare_for_training(data_dir, images_ext, split_part=test_split_part)
+        prepare_for_training(data_dir, take_last_count, images_ext, split_part=test_split_part)
 
         # train
         yaml_path = os.path.join(source_folder_class, "training", "train.yml")
@@ -163,7 +171,7 @@ def train(source_folder_class: str,
                           + "_img_count_" + str(len(txts)) + ".txt"), 'a').close()
 
     else:
-        print(f"Count of labeled images {len(non_empty_txts)}/{min_samples_count}")
+        print(f"Count of labeled images: {len(non_empty_txts)}/{min_samples_count}")
     return mAP_095
 
 
@@ -177,34 +185,23 @@ def parse_opt(known=False):
     return opt
 
 
-def read_config(config_path):
-    with open(config_path, "r") as stream:
-        try:
-            config_dict = yaml.safe_load(stream)
-            # print(config_dict)
-        except yaml.YAMLError as exc:
-            print(exc)
-
-    return config_dict
-
-
 if __name__ == "__main__":
     opt = parse_opt()
     project_name = opt.project_name
     class_for_training = opt.class_for_training
     resume_weights = opt.resume_weights
 
-    config_file = f"data/{project_name}/config.yaml"
-    config_dict = read_config(config_file)
-    max_training_attempts = config_dict['max_training_attempts']
+    config_file = os.path.join("data", project_name, "labeling_config.yaml")
+    labeling_config = read_config(config_file)
+    max_training_attempts = labeling_config['max_training_attempts']
 
     attempt = 0
     while attempt < max_training_attempts:
 
-        config_dict = read_config(config_file)
+        labeling_config = read_config(config_file)
 
-        classes_file = config_dict['classes_file']
-        classes_file_path = f"data/{project_name}/{classes_file}"
+        classes_file = labeling_config['classes_file']
+        classes_file_path = os.path.join("data", project_name, classes_file)
         with open(classes_file_path) as file:
             classes = [line.rstrip() for line in file]
 
@@ -212,32 +209,34 @@ if __name__ == "__main__":
         source_folder = f"data/{project_name}/labeling"
 
         # training params
-        images_ext = config_dict['image_exstension']
+        images_ext = labeling_config['image_exstension']
         source_folder_class = os.path.join(source_folder,
                                            str(classes.index(class_for_training)) + "_" + class_for_training)
 
-        min_samples_count = config_dict['min_samples_count']
-        model_input_image_size = config_dict['model_input_image_size']
+        min_samples_count = labeling_config['min_samples_count']
+        model_input_image_size = labeling_config['model_input_image_size']
 
-        batch_size = config_dict['batch_size']
-        max_epochs = config_dict['max_epochs']
-        min_epochs = config_dict['min_epochs']
-        init_weights = config_dict['init_weights_path']
-        min_mAP_095 = config_dict['min_map']
-        sleep_training_min = config_dict['sleep_training_min']
-        test_split_part = config_dict['test_split_part']
+        batch_size = labeling_config['batch_size']
+        max_epochs = labeling_config['max_epochs']
+        min_epochs = labeling_config['min_epochs']
+        init_weights = labeling_config['init_weights_path']
+        min_mAP_095 = labeling_config['min_map']
+        sleep_training_min = labeling_config['sleep_training_min']
+        test_split_part = labeling_config['test_split_part']
 
-        count_of_epochs_min_map = config_dict['count_of_epochs_min_map']
-        resume_epochs = config_dict['resume_epochs']
+        count_of_epochs_min_map = labeling_config['count_of_epochs_min_map']
+        resume_epochs = labeling_config['resume_epochs']
+        take_last_count = labeling_config['take_last_count']
 
         # Inference params
-        threshold = config_dict['threshold']
-        nms = config_dict['nms']
-        count_of_images_to_markup = config_dict['count_of_images_to_markup']
+        threshold = labeling_config['threshold']
+        nms = labeling_config['nms']
+        count_of_images_to_markup = labeling_config['count_of_images_to_markup']
 
         mAP_095 = train(source_folder_class,
                         images_ext,
                         min_samples_count,
+                        take_last_count,
                         model_input_image_size,
                         batch_size,
                         max_epochs,

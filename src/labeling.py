@@ -127,7 +127,7 @@ if __name__ == "__main__":
         project_path = os.path.join(source_folder_class, "training", "runs")
 
         last_exp_number = get_last_exp_number(project_path)
-        if exp:
+        if exp is not None:
             last_exp_number = exp
 
         weights = os.path.join(source_folder_class, "training", "runs", "exp" + str(last_exp_number), "weights",
@@ -142,6 +142,7 @@ if __name__ == "__main__":
     if not count_of_images_to_markup:
         count_of_images_to_markup = config_dict['count_of_images_to_markup']
 
+    print(f"Pretrained weighs: {weights}")
     pseudolabeling(data_dir,
                    weights,
                    threshold,
