@@ -34,10 +34,18 @@ def update_and_merge(project_name: str,
         with open(txt) as txt_file:
             lines = [line.rstrip() for line in txt_file.readlines()]
 
+        if txt.stem == "13_00307_0":
+            print()
+
+        # recreate txt for every class
+        for cl in classes:
+            open(os.path.join("data", project_name, "labeling", str(cl) + "_" + classes[cl], "data", txt.name), 'w')
+
         txt_dict = defaultdict(list)
         for line in lines:
             txt_dict[int(line.split()[0])].append(line)
 
+        # fill txt with new values
         for cl, val in txt_dict.items():
             with open(os.path.join("data", project_name, "labeling", str(cl) + "_" + classes[cl], "data", txt.name),
                       'w') as f:

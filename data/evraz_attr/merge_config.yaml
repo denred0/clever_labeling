@@ -1,5 +1,5 @@
 classes_to_merge: [white_helmet, yellow_helmet, orange_helmet, red_helmet, head, hood, welding_helmet]
 obligatory_classes: [[white_helmet, yellow_helmet, orange_helmet, red_helmet, welding_helmet, hood], [head]]
-iou: 0.8
+iou: 0.85
 
 
