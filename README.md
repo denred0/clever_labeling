@@ -36,16 +36,20 @@ pip install -r requirements.txt
 <br>│   │   │   ├── image1.jpg
 <br>│   │   │   ├── image2.jpg
 <br>│   │   │   ├── image3.jpg
-5. Copy "config.yaml" from data/sample_project to folder with your project. You can configure training and pseudolabeling of your project using this "config.yaml".
+5. Copy "labeling_config.yaml" from data/sample_project to folder with your project. You can configure training and pseudolabeling of your project using this "labeling_config.yaml".
 
-## Spliting data
+## Prepare dataset
 Run script `prepare_dataset.py`
 ```python
-python src/prepare_dataset.py %project_folder_name% %classes file name%
-python src/prepare_dataset.py animals_detection classes.txt
+python src/prepare_dataset.py %project_folder_name% 
+python src/prepare_dataset.py animals_detection 
 ```
 
 It will create folder "labeling" with subfolder for every class.<br>You will labeling every class separately. I noticed that it is more precise and convenient. 
+Subfolder for every class will have only one class for labeling with index 0. When you markup all classes you can merge all txts together and every class will have own index according "classes.txt".
+You can find the merging process in **Merging results** part of this tutorial. 
+
+**prepare_dataset.py** has additional parameter --update_txts that means that you want to create txts for every class and fill them with values from data/animals_detection/dataset. But be careful It rewrites txts for classes if they existed before. 
 
 ## Training
 To start training run:

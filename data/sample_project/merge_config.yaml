@@ -1,5 +1,12 @@
+# you can set [] - it means that all classes should be merged
 classes_to_merge: [white_helmet, yellow_helmet, orange_helmet, red_helmet, head, hood, welding_helmet]
+
+# classes that mandatory should be labeling on image
+# Classes inside one list means the "or" rule applies to it.
+# This example:
+# ((white_helmet OR yellow_helmet OR orange_helmet OR red_helmet OR welding_helmet OR hood) AND (head))
 obligatory_classes: [[white_helmet, yellow_helmet, orange_helmet, red_helmet, welding_helmet, hood], [head]]
-iou: 0.85
+
+iou: 0.85 #check that bboxes for classes don't have overlapping with that value IoU.
 
 
