@@ -96,9 +96,9 @@ This script creates a folder _animals_detection/merge_ with resulting markup.
 
 Additionally you can check your dataset for collision. 
 Check **sample_project/merge_config.yaml** to configure merging process:
-_classes_to_merge_ - classes that you want to merge. you can set [] - it means that all classes should be merged.
-_obligatory_classes_ - check that every image has markup for specific class. 
-_iou_ - check that bboxes doesn't have overlapping more that this value. 
+<br>_classes_to_merge_ - classes that you want to merge. you can set [] - it means that all classes should be merged.
+<br>_obligatory_classes_ - check that every image has markup for specific class. 
+<br>_iou_ - check that bboxes doesn't have overlapping more that this value. 
 
 **src/merge_labels.py** creates folder for every collision case: 1_high_iou, 2_without_obligatory_classes, 3_empty_images (images without any bbox).
 You can fix markup in every that folder consequentially and then start script **src/update_and_merge.py %project_name% %upd%**
