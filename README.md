@@ -49,7 +49,7 @@ It will create folder "labeling" with subfolder for every class.<br>You will lab
 Subfolder for every class will have only one class for labeling with index 0. When you markup all classes you can merge all txts together and every class will have own index according "classes.txt".
 You can find the merging process in **Merging results** part of this tutorial. 
 
-**prepare_dataset.py** has additional parameter --update_txts that means that you want to create txts for every class and fill them with values from data/animals_detection/dataset. But be careful It rewrites txts for classes if they existed before. 
+**prepare_dataset.py** has additional parameter _--update_txts_ that means that you want to create txts for every class and fill them with values from data/animals_detection/dataset. But be careful It rewrites txts for classes if they existed before. 
 
 ## Training
 To start training run:
@@ -63,8 +63,7 @@ This script creates a folder "animals_detection/labeling/dog/**training**" and a
 **Additional parameters:**
 <br>_--resume_weights_ - path to weights to resume training
 
-If training is success when **src/train.py** will markup count_of_images_to_markup that you didn't markup so far. 
-You can change params in **config.yaml** between training attempts. 
+You can change params in **labeling_config.yaml** between training attempts. 
 
 
 ## Pseudo labeling
@@ -77,9 +76,10 @@ python src/labeling.py animals_detection dog
 **Additional parameters:**
 <br>_--count_of_images_to_markup_ - count of images to markup if mAP will be greater than min mAP. 
 <br>_--th_ - min threshold for label sample. 
-<br>_--nms_. 
+<br>_--nms_ - nonmax suspression for detection
+<br>_--exp_ - use weights of specific experiment
 
-It will markup count_of_images_to_markup that you didn't markup so far.  
+It will markup _count_of_images_to_markup_ that you didn't markup so far.  
 
 If you don't like results of labeling you can run **src/train.py** again. In this case **src/train.py** takes all data that you markup so far.  
 
@@ -88,8 +88,25 @@ If you don't like results of labeling you can run **src/train.py** again. In thi
 You labeled all classes separately and can merge results. 
 <br>Run script `merge_labels.py`
 ```python
-python src/merge_labels.py %project_folder_name% %images exstension%
-python src/merge_labels.py animals_detection jpg
+python src/merge_labels.py %project_folder_name% 
+python src/merge_labels.py animals_detection
 ```
 
-This script creates a folder animals_detection/merge_labels/output with resulting markup. 
+This script creates a folder _animals_detection/merge_ with resulting markup. 
+
+Additionally you can check your dataset for collision. 
+Check **sample_project/merge_config.yaml**:
+_classes_to_merge_ - classes that you want to merge. you can set [] - it means that all classes should be merged.
+_obligatory_classes_ - check that every image has markup for specific class. 
+_iou_ - check that bboxes doesn't have overlapping more that this value. 
+
+**src/merge_labels.py** creates folder for every collision case: 1_high_iou, 2_without_obligatory_classes, 3_empty_images (images without any bbox).
+You can fix markup in every that folder consequentially and then start script **src/update_and_merge.py %project_name% %upd%**
+_upd_ parameter means type of update. Possible values: iou, obl (for obligatory_classes), emp (for empty images). 
+
+For example, you fix markup inside folder _1_high_iou_, It means that you should update markup and resulting dataset and run script:
+```python
+python src/update_and_merge.py animals_detection iou
+```
+
+Now you can fix markup in _2_without_obligatory_classes_ folder and etc. 
