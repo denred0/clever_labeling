@@ -12,7 +12,7 @@ def update_and_merge(project_name: str,
                      upd_type: str):
     #
     if upd_type == "iou":
-        dir = os.path.join("data", project_name, "merge", "1_big_iou")
+        dir = os.path.join("data", project_name, "merge", "1_high_iou")
     elif upd_type == "obl":
         dir = os.path.join("data", project_name, "merge", "2_without_obligatory_classes")
     elif upd_type == "emp":
@@ -33,9 +33,6 @@ def update_and_merge(project_name: str,
     for txt in tqdm(txts, desc="Updating txts"):
         with open(txt) as txt_file:
             lines = [line.rstrip() for line in txt_file.readlines()]
-
-        if txt.stem == "13_00307_0":
-            print()
 
         # recreate txt for every class
         for cl in classes:
