@@ -102,9 +102,9 @@ Check **sample_project/merge_config.yaml** to configure merging process:
 
 **src/merge_labels.py** creates folder for every collision case: 1_high_iou, 2_without_obligatory_classes, 3_empty_images (images without any bbox).
 <br>You can fix markup in every that folder consequentially and then start script **src/update_and_merge.py %project_name% %upd%**
-<br>_upd_ parameter means type of update. Possible values: iou, obl (for obligatory_classes), emp (for empty images). 
+<br>_upd_ parameter means type of update. Possible values: _iou_, _obl_ (for obligatory_classes), _emp_ (for empty images). 
 
-For example, you fix markup inside folder _1_high_iou_, It means that you should update markup and resulting dataset and run script:
+For example, you fixed markup inside folder _1_high_iou_, It means that you should update markup and resulting dataset and run the script:
 ```python
 python src/update_and_merge.py animals_detection iou
 ```
