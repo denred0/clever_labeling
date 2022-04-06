@@ -20,6 +20,9 @@ def merge_txts_labels(project_name: str) -> None:
     with open(classes_file_path) as file:
         classes = {k: v for (k, v) in enumerate([line.rstrip() for line in file])}
 
+    if not classes_to_merge:
+        classes_to_merge = list(classes.values())
+
     dataset_dir = os.path.join("data", project_name, "merge", "dataset")
     recreate_folder(dataset_dir)
 
