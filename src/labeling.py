@@ -102,7 +102,7 @@ if __name__ == "__main__":
     weights = opt.weights
     exp = opt.exp
 
-    config_file = f"data/{project_name}/config.yaml"
+    config_file = f"data/{project_name}/labeling_config.yaml"
 
     with open(config_file, "r") as stream:
         try:
