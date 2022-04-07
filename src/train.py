@@ -195,7 +195,7 @@ if __name__ == "__main__":
     labeling_config = read_config(config_file)
     max_training_attempts = labeling_config['max_training_attempts']
 
-    attempt = 0
+    attempt = 1
     while attempt < max_training_attempts:
 
         labeling_config = read_config(config_file)
@@ -273,3 +273,4 @@ if __name__ == "__main__":
             print(f"Next train at: {next_training_time.strftime('%H:%M:%S')}")
             time.sleep(sleep_training_min * 60)
             attempt += 1
+
