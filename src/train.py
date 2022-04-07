@@ -270,7 +270,7 @@ if __name__ == "__main__":
             next_training_time = now + timedelta(minutes=sleep_training_min)
             print(f"\nAttempt {attempt}/{max_training_attempts}")
             print(f"Current mAP {mAP_095} is below than {min_mAP_095}")
-            print(f"Next train at: {next_training_time.strftime('%H:%M:%S')}")
+            print(f"Next train at: {next_training_time.strftime('%H:%M:%S')}\n")
             time.sleep(sleep_training_min * 60)
             attempt += 1
 

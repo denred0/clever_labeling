@@ -64,7 +64,7 @@ def replicate_dataset(classes: List,
 def parse_opt(known=False):
     parser = argparse.ArgumentParser()
     parser.add_argument('project_name', type=str, help="project's folder name")
-    parser.add_argument('--update_txts', action="store_true", help="project's folder name")
+    parser.add_argument('--update_txts', action="store_true", help="update txts for classes")
     opt = parser.parse_known_args()[0] if known else parser.parse_args()
     return opt
 

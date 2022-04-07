@@ -87,6 +87,7 @@ def parse_opt(known=False):
     parser.add_argument('--th', type=float)
     parser.add_argument('--nms', type=float)
     parser.add_argument('--exp', type=str)
+    parser.add_argument('--last_full', action="store_true")
 
     opt = parser.parse_known_args()[0] if known else parser.parse_args()
     return opt
@@ -101,6 +102,7 @@ if __name__ == "__main__":
     nms = opt.nms
     weights = opt.weights
     exp = opt.exp
+    last_full = opt.last_full
 
     config_file = f"data/{project_name}/labeling_config.yaml"
 
@@ -129,6 +131,9 @@ if __name__ == "__main__":
         last_exp_number = get_last_exp_number(project_path)
         if exp is not None:
             last_exp_number = exp
+        elif last_full:
+            if last_exp_number != '':
+                last_exp_number = int(last_exp_number) - 1
 
         weights = os.path.join(source_folder_class, "training", "runs", "exp" + str(last_exp_number), "weights",
                                "best.pt")
