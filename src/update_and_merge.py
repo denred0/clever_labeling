@@ -48,7 +48,7 @@ def update_and_merge(project_name: str,
                       'w') as f:
                 for line in val:
                     row = line.split(" ")
-                    row[0] = 0
+                    row[0] = '0'
                     f.write("%s\n" % str(" ".join(row)))
 
     merge_txts_labels(project_name)
