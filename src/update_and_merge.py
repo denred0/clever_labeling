@@ -47,7 +47,9 @@ def update_and_merge(project_name: str,
             with open(os.path.join("data", project_name, "labeling", str(cl) + "_" + classes[cl], "data", txt.name),
                       'w') as f:
                 for line in val:
-                    f.write("%s\n" % str(line))
+                    row = line.split(" ")
+                    row[0] = 0
+                    f.write("%s\n" % str(" ".join(row)))
 
     merge_txts_labels(project_name)
 
