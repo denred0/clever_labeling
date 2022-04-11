@@ -6,6 +6,7 @@ image_exstension: jpg
 # Training parameters
 test_split_part: 0.2 # train test split for training 80/20
 init_weights_path: yolov5_weights/yolov5m.pt
+take_first_count: 600
 take_last_count: 800 #take last labeled images for train. Set -1 for all images.
 min_samples_count: 200 # min number of labeling images to start training
 model_input_image_size: 640 # model input resolution

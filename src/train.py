@@ -22,6 +22,7 @@ warnings.filterwarnings("ignore")
 
 
 def prepare_for_training(data_dir: str,
+                         take_first_count: int,
                          take_last_count: int,
                          images_ext: str,
                          split_part=0.2) -> None:
@@ -40,7 +41,8 @@ def prepare_for_training(data_dir: str,
 
     # train test split
     txts = get_all_files_in_folder(data_dir, ["*.txt"])
-    print(f'Total images: {len(txts)}')
+    imgs = get_all_files_in_folder(data_dir, [f"*.{images_ext}"])
+    print(f'Total images: {len(imgs)}')
 
     empty_txts = []
     non_empty_txts = []
@@ -50,6 +52,9 @@ def prepare_for_training(data_dir: str,
             non_empty_txts.append(txt)
         else:
             empty_txts.append(txt)
+
+    if take_first_count != -1 and len(non_empty_txts) > take_first_count:
+        non_empty_txts = non_empty_txts[:take_first_count]
 
     if take_last_count != -1 and len(non_empty_txts) > take_last_count:
         non_empty_txts = non_empty_txts[-take_last_count:]
@@ -64,6 +69,9 @@ def prepare_for_training(data_dir: str,
         else:
             shutil.copy(txt, os.path.join(training_dir, "val"))
             shutil.copy(str(txt.parent) + os.sep + txt.stem + "." + images_ext, os.path.join(training_dir, "val"))
+
+    if take_first_count != -1 and len(empty_txts) > take_first_count * 2:
+        empty_txts = empty_txts[:(2 * take_first_count)]
 
     if take_last_count != -1 and len(empty_txts) > take_last_count * 2:
         empty_txts = empty_txts[-(2 * take_last_count):]
@@ -100,6 +108,7 @@ def prepare_for_training(data_dir: str,
 def train(source_folder_class: str,
           images_ext: str,
           min_samples_count: int,
+          take_first_count: int,
           take_last_count: int,
           model_input_image_size: int,
           batch_size: int,
@@ -123,7 +132,7 @@ def train(source_folder_class: str,
             non_empty_txts.append(txt)
 
     if len(non_empty_txts) >= min_samples_count:
-        prepare_for_training(data_dir, take_last_count, images_ext, split_part=test_split_part)
+        prepare_for_training(data_dir, take_first_count, take_last_count, images_ext, split_part=test_split_part)
 
         # train
         yaml_path = os.path.join(source_folder_class, "training", "train.yml")
@@ -227,6 +236,7 @@ if __name__ == "__main__":
         count_of_epochs_min_map = labeling_config['count_of_epochs_min_map']
         resume_epochs = labeling_config['resume_epochs']
         take_last_count = labeling_config['take_last_count']
+        take_first_count = labeling_config['take_first_count']
 
         # Inference params
         threshold = labeling_config['threshold']
@@ -236,6 +246,7 @@ if __name__ == "__main__":
         mAP_095 = train(source_folder_class,
                         images_ext,
                         min_samples_count,
+                        take_first_count,
                         take_last_count,
                         model_input_image_size,
                         batch_size,
@@ -273,4 +284,3 @@ if __name__ == "__main__":
             print(f"Next train at: {next_training_time.strftime('%H:%M:%S')}\n")
             time.sleep(sleep_training_min * 60)
             attempt += 1
-

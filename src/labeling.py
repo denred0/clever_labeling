@@ -80,7 +80,7 @@ def pseudolabeling(data_dir: str,
 def parse_opt(known=False):
     parser = argparse.ArgumentParser()
     parser.add_argument('project_name', type=str, help='project folder name')
-    parser.add_argument('class_for_training', type=str, help='Name of class for training')
+    parser.add_argument('class_for_labeling', type=str, help='Name of class for labeling')
     parser.add_argument('--weights', type=str, help='pretraining weights')
     parser.add_argument('--count_of_images_to_markup', '--img_count', type=int,
                         help='Number of images for labeling')
@@ -96,7 +96,7 @@ def parse_opt(known=False):
 if __name__ == "__main__":
     opt = parse_opt()
     project_name = opt.project_name
-    class_for_training = opt.class_for_training
+    class_for_labeling = opt.class_for_labeling
     count_of_images_to_markup = opt.count_of_images_to_markup
     threshold = opt.th
     nms = opt.nms
@@ -122,7 +122,7 @@ if __name__ == "__main__":
 
     images_ext = config_dict['image_exstension']
     source_folder_class = os.path.join(source_folder,
-                                       str(classes.index(class_for_training)) + "_" + class_for_training)
+                                       str(classes.index(class_for_labeling)) + "_" + class_for_labeling)
 
     data_dir = os.path.join(source_folder_class, "data")
     if not weights:
