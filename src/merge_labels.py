@@ -137,8 +137,8 @@ def merge_txts_labels(project_name: str) -> None:
                         os.path.join("data", project_name, "merge", without_obligatory_classes_folder))
 
     print(f"\nFixed dublicates: {dublicates} ")
-    print(f"Without obligatory classes count: {without_obligatory_classes_count}")
     print(f"High IoU count: {high_iou_count}")
+    print(f"Without obligatory classes count: {without_obligatory_classes_count}")
     print(f"Empty images count: {empty_images_count}")
 
     print("\nCount of labels:")
