@@ -62,6 +62,14 @@ def merge_txts_labels(project_name: str) -> None:
         with open(txt) as txt_file:
             lines = [line.rstrip() for line in txt_file.readlines()]
 
+        non_empty_lines = []
+        for line in lines:
+            if line != "":
+                non_empty_lines.append(line)
+
+        if not non_empty_lines:
+            continue
+
         if len(set(lines)) != len(lines):
             dublicates += 1
             with open(txt, 'x') as f:
@@ -98,13 +106,14 @@ def merge_txts_labels(project_name: str) -> None:
 
                 # check classes with high iou
                 for j in range(i + 1, len(labels)):
-                    iou_p = intersection_over_union_box([float(x) for x in labels[i].split(" ")[1:]],
-                                                        [float(x) for x in labels[j].split(" ")[1:]])
-                    if iou_p >= iou:
-                        high_iou_exist = True
+                    if labels[i] and labels[j]:
+                        iou_p = intersection_over_union_box([float(x) for x in labels[i].split(" ")[1:]],
+                                                            [float(x) for x in labels[j].split(" ")[1:]])
+                        if iou_p >= iou:
+                            high_iou_exist = True
 
         shutil.copy(os.path.join("data", project_name, "dataset", f"{filename}.{ext_images}"),
-                    os.path.join("data", project_name, "merge", dataset_dir))
+                    dataset_dir)
 
         if not labels:
             empty_images_count += 1
@@ -122,10 +131,10 @@ def merge_txts_labels(project_name: str) -> None:
 
         if not mandatory_class_exist and obligatory_classes:
             without_obligatory_classes_count += 1
-            shutil.copy(os.path.join("data", project_name, "merge_problems", "dataset", f"{filename}.txt"),
-                        os.path.join("data", project_name, "merge_problems", without_obligatory_classes_folder))
+            shutil.copy(os.path.join("data", project_name, "merge", "dataset", f"{filename}.txt"),
+                        os.path.join("data", project_name, "merge", without_obligatory_classes_folder))
             shutil.copy(os.path.join("data", project_name, "dataset", f"{filename}.{ext_images}"),
-                        os.path.join("data", project_name, "merge_problems", without_obligatory_classes_folder))
+                        os.path.join("data", project_name, "merge", without_obligatory_classes_folder))
 
     print(f"\nFixed dublicates: {dublicates} ")
     print(f"Without obligatory classes count: {without_obligatory_classes_count}")
