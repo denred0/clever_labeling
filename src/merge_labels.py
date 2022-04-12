@@ -49,8 +49,7 @@ def merge_txts_labels(project_name: str) -> None:
             imgs = get_all_files_in_folder(os.path.join("data", project_name, "labeling", str(ind) + "_" + cl, "data"),
                                            [f"*.{ext_images}"])
 
-            assert len(txts) == len(imgs)
-            f"Count of images and txts for class {cl} is not equal"
+            assert len(txts) == len(imgs), f"Count of images and txts for class {cl} is not equal"
 
             all_txts.extend(txts)
 
