@@ -49,7 +49,7 @@ It will create folder "labeling" with subfolder for every class.<br>You will lab
 Subfolder for every class will have only one class for labeling with index 0. When you markup all classes you can merge all txts together and every class will have own index according "classes.txt".
 You can find the merging process in **Merging results** part of this tutorial. 
 
-**prepare_dataset.py** has additional parameter _--update_txts_ that means that you want to create txts for every class and fill them with values from data/animals_detection/dataset. But be careful It rewrites txts for classes if they existed before. 
+**prepare_dataset.py** has additional parameter _--upd_txts_ that means that you want to create txts for every class and fill them with values from data/animals_detection/dataset. But be careful It rewrites txts for classes if they existed before. 
 
 ## Training
 To start training run:
