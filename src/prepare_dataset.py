@@ -32,7 +32,7 @@ def replicate_dataset(classes: List,
         if not os.path.isdir(os.path.join(dest_folder, "data")):
             os.makedirs(os.path.join(dest_folder, "data"))
 
-        for img in images:
+        for img in tqdm(images):
             shutil.copy(img, os.path.join(dest_folder, "data"))
 
         with open(os.path.join(dest_folder, classes_file), 'w') as f:
@@ -72,7 +72,7 @@ def parse_opt(known=False):
 if __name__ == "__main__":
     opt = parse_opt()
     project_name = opt.project_name
-    update_txts = opt.update_txts
+    update_txts = opt.upd_txts
 
     config_file = os.path.join("data", project_name, "labeling_config.yaml")
     config_dict = read_config(config_file)

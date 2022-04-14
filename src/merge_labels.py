@@ -72,7 +72,7 @@ def merge_txts_labels(project_name: str) -> None:
 
         if len(set(lines)) != len(lines):
             dublicates += 1
-            with open(txt, 'x') as f:
+            with open(txt, 'w') as f:
                 for line in set(lines):
                     f.write("%s\n" % str(line))
 
