@@ -49,7 +49,20 @@ def merge_txts_labels(project_name: str) -> None:
             imgs = get_all_files_in_folder(os.path.join("data", project_name, "labeling", str(ind) + "_" + cl, "data"),
                                            [f"*.{ext_images}"])
 
-            assert len(txts) == len(imgs), f"Count of images and txts for class {cl} is not equal"
+            if len(txts) != len(imgs):
+                print(f"Count of images and txts for class <<{cl}>> is not equal")
+                txts_names = [txt.stem for txt in txts]
+                imgs_names = [img.stem for img in imgs]
+                if len(txts_names) > len(imgs_names):
+                    print("Bad txts:")
+                    bad_txts = list(set(txts_names) - set(imgs_names))
+                    print(bad_txts)
+                else:
+                    print("Bad imgs:")
+                    bad_imgs = list(set(imgs_names) - set(txts_names))
+                    print(bad_imgs)
+
+                return
 
             all_txts.extend(txts)
 
@@ -135,6 +148,8 @@ def merge_txts_labels(project_name: str) -> None:
                         os.path.join("data", project_name, "merge", without_obligatory_classes_folder))
             shutil.copy(os.path.join("data", project_name, "dataset", f"{filename}.{ext_images}"),
                         os.path.join("data", project_name, "merge", without_obligatory_classes_folder))
+
+    shutil.copy(os.path.join("data", project_name, classes_file), os.path.join("data", project_name, "merge"))
 
     print(f"\nFixed dublicates: {dublicates} ")
     print(f"High IoU count: {high_iou_count}")
