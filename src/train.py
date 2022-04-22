@@ -168,7 +168,7 @@ def train(source_folder_class: str,
         # check results
         results = []
         last_exp_number = get_last_exp_number(project_path)
-        with open(os.path.join(project_path, "exp" + str(last_exp_number), "results.csv"), 'r') as file:
+        with open(os.path.join(project_path, f"exp{last_exp_number}", "results.csv"), 'r') as file:
             reader = csv.reader(file)
             for row in reader:
                 results.append(row)
@@ -176,8 +176,8 @@ def train(source_folder_class: str,
         mAP_095 = float(results[-1][7].strip())
         timestamp = datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d_%H:%M:%S')
         open(os.path.join(logs_path,
-                          timestamp + "_mAP_" + str(round(mAP_095, 4))
-                          + "_img_count_" + str(len(txts)) + ".txt"), 'a').close()
+                          f"{timestamp}_exp{last_exp_number}_mAP_{round(mAP_095, 4)}_img_count_{len(txts)}.txt"),
+             'a').close()
 
     else:
         print(f"Count of labeled images: {len(non_empty_txts)}/{min_samples_count}")
