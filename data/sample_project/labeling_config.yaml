@@ -16,6 +16,7 @@ min_epochs: 150 # min number of epochs for training. Training does not stop unti
 resume_epochs: 50 # additional number of epochs for resuming
 min_map: 0.8
 count_of_epochs_min_map: 10 # number of epochs to get min_map. Training stops when this number achieved
+count_epochs_before_result: 20 # number of epochs to check mAP greater than 5% or not. If less stop training and wait additional data.
 sleep_training_min: 20 # wait for next training attempt
 max_training_attempts: 10
 

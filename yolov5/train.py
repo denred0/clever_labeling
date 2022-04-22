@@ -415,7 +415,7 @@ def train(hyp,  # path/to/hyp.yaml or hyp dictionary
                     break
 
             # stop because not enough examples for training
-            if results[3] < 0.05 and epoch == 20:
+            if results[3] < 0.05 and epoch == opt.count_epochs_before_result:
                 break
 
             # Stop Single-GPU
@@ -503,6 +503,7 @@ def parse_opt(known=False):
     parser.add_argument('--min_map', type=float, help='min_map tostop training')
     parser.add_argument('--count_of_epochs_min_map', type=int, help='min_map tostop training')
     parser.add_argument('--min_epochs', type=int, default=100, help='min_epochs')
+    parser.add_argument('--count_epochs_before_result', type=int, default=20, help='min_epochs')
 
     # Weights & Biases arguments
     parser.add_argument('--entity', default=None, help='W&B: Entity')

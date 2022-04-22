@@ -119,7 +119,8 @@ def train(source_folder_class: str,
           min_mAP_095: float,
           count_of_epochs_min_map: int,
           resume_weights: str,
-          resume_epochs: int) -> float:
+          resume_epochs: int,
+          count_epochs_before_result: int) -> float:
     #
     mAP_095 = 0.0
     data_dir = os.path.join(source_folder_class, "data")
@@ -151,7 +152,8 @@ def train(source_folder_class: str,
                 f"--min_map {min_mAP_095} "
                 f"--count_of_epochs_min_map {count_of_epochs_min_map} "
                 f"--min_epochs {min_epochs} "
-                f"--resume {resume_weights}")
+                f"--resume {resume_weights} "
+                f"--count_epochs_before_result {count_epochs_before_result}")
         else:
             os.system(
                 f"python yolov5/train.py "
@@ -163,7 +165,8 @@ def train(source_folder_class: str,
                 f"--project {project_path} "
                 f"--min_map {min_mAP_095} "
                 f"--count_of_epochs_min_map {count_of_epochs_min_map} "
-                f"--min_epochs {min_epochs}")
+                f"--min_epochs {min_epochs} "
+                f"--count_epochs_before_result {count_epochs_before_result}")
 
         # check results
         results = []
@@ -237,6 +240,7 @@ if __name__ == "__main__":
         resume_epochs = labeling_config['resume_epochs']
         take_last_count = labeling_config['take_last_count']
         take_first_count = labeling_config['take_first_count']
+        count_epochs_before_result = labeling_config['count_epochs_before_result']
 
         # Inference params
         threshold = labeling_config['threshold']
@@ -257,7 +261,8 @@ if __name__ == "__main__":
                         min_mAP_095,
                         count_of_epochs_min_map,
                         resume_weights,
-                        resume_epochs)
+                        resume_epochs,
+                        count_epochs_before_result)
 
         if mAP_095 >= min_mAP_095:
             project_path = os.path.join(source_folder_class, "training", "runs")
@@ -267,14 +272,6 @@ if __name__ == "__main__":
             exp_path = os.path.join(source_folder_class, "training", "runs", "exp" + str(last_exp_number))
             print(f"Experiment path: {exp_path}")
 
-            # pseudolabeling(data_dir=os.path.join(source_folder_class, "data"),
-            #                weights=os.path.join(source_folder_class, "training", "runs", "exp" + str(last_exp_number),
-            #                                     "weights", "best.pt"),
-            #                threshold=threshold,
-            #                nms=nms,
-            #                model_input_image_size=model_input_image_size,
-            #                images_ext=images_ext,
-            #                count_of_images_to_markup=count_of_images_to_markup)
             attempt = max_training_attempts
         else:
             now = datetime.now()
