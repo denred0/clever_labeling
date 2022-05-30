@@ -41,9 +41,14 @@ def replicate_dataset(classes: List,
     if update_txts:
         txts = get_all_files_in_folder(dataset_path, ["*.txt"])
 
+        empty_txts = []
+
         for txt in tqdm(txts, desc="Recreating txts"):
             with open(txt) as txt_file:
                 lines = [line.rstrip() for line in txt_file.readlines()]
+
+            if not lines:
+                empty_txts.append(txt)
 
             txt_dict = defaultdict(list)
             for line in lines:
@@ -59,6 +64,13 @@ def replicate_dataset(classes: List,
                 with open(new_txt_path, 'w') as f:
                     for line in val:
                         f.write("%s\n" % ("0 " + str(line)))
+
+        for ind, cl in enumerate(classes):
+            for txt in empty_txts:
+                new_txt_path = os.path.join("data", project_name, "labeling", str(ind) + "_" + str(cl), "data",
+                                            txt.name)
+
+                with open(new_txt_path, 'w') as fp: pass
 
 
 def parse_opt(known=False):

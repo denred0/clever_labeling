@@ -42,6 +42,7 @@ def merge_txts_labels(project_name: str) -> None:
 
     all_txts = []
     count_of_classes = {}
+    count_of_items = 0
     for ind, cl in tqdm(classes.items(), desc="Reading classes"):
         if cl in classes_to_merge:
             txts = get_all_files_in_folder(os.path.join("data", project_name, "labeling", str(ind) + "_" + cl, "data"),
@@ -63,6 +64,13 @@ def merge_txts_labels(project_name: str) -> None:
                     print(bad_imgs)
 
                 return
+
+            if count_of_items == 0:
+                count_of_items = len(txts) + len(imgs)
+            else:
+                if count_of_items != len(txts) + len(imgs):
+                    print(f"Count of items in class <<{cl}>> is differerent from others")
+                    return
 
             all_txts.extend(txts)
 

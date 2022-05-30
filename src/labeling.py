@@ -132,11 +132,19 @@ if __name__ == "__main__":
         if exp is not None:
             last_exp_number = exp
         elif last_full:
-            if last_exp_number != '':
+            if last_exp_number == 0 or last_exp_number == 2:
+                last_exp_number = 0
+            else:
                 last_exp_number = int(last_exp_number) - 1
 
-        weights = os.path.join(source_folder_class, "training", "runs", "exp" + str(last_exp_number), "weights",
+        last_exp_number_str = str(last_exp_number) if last_exp_number != 0 else ''
+
+        weights = os.path.join(source_folder_class, "training", "runs", "exp" + str(last_exp_number_str), "weights",
                                "best.pt")
+        weights = weights if os.path.isfile(weights) else os.path.join(source_folder_class, "training", "runs",
+                                                                       "exp" + str(last_exp_number_str), "weights",
+                                                                       "last.pt")
+
     model_input_image_size = config_dict['model_input_image_size']
     if not threshold:
         threshold = config_dict['threshold']

@@ -2,6 +2,8 @@ import random
 import shutil
 import os
 import time
+from typing import List
+
 import yaml
 import csv
 import numpy as np
@@ -22,6 +24,9 @@ warnings.filterwarnings("ignore")
 
 
 def prepare_for_training(data_dir: str,
+                         previous_exp: int,
+                         full_train,
+                         images_filter: List,
                          take_first_count: int,
                          take_last_count: int,
                          images_ext: str,
@@ -39,9 +44,27 @@ def prepare_for_training(data_dir: str,
     if not os.path.isdir(os.path.join(training_dir, "logs")):
         os.mkdir(os.path.join(training_dir, "logs"))
 
-    # train test split
+    # if images_filter:
+    #     txts = []
+    #     imgs = []
+    #     for filter_value in images_filter:
+    #         txts.extend(get_all_files_in_folder(data_dir, [f"*{filter_value}*.txt"]))
+    #         imgs.extend(get_all_files_in_folder(data_dir, [f"*{filter_value}*.{images_ext}"]))
+    # else:
     txts = get_all_files_in_folder(data_dir, ["*.txt"])
     imgs = get_all_files_in_folder(data_dir, [f"*.{images_ext}"])
+
+    prev_txts = prev_imgs = []
+    if previous_exp != -1:
+        if not full_train:
+            with open(os.path.join(training_dir, f"train_val{previous_exp}.txt")) as file:
+                prev_txts = file.readlines()
+                prev_txts = [line.rstrip() for line in prev_txts]
+                prev_imgs = [txt.split('.')[0] + f".{images_ext}" for txt in prev_txts]
+
+    txts = [txt for txt in txts if txt.name not in prev_txts]
+    imgs = [img for img in imgs if img.name not in prev_imgs]
+
     print(f'Total images: {len(imgs)}')
 
     empty_txts = []
@@ -53,16 +76,17 @@ def prepare_for_training(data_dir: str,
         else:
             empty_txts.append(txt)
 
-    if take_first_count != -1 and len(non_empty_txts) > take_first_count:
-        non_empty_txts = non_empty_txts[:take_first_count]
-
-    if take_last_count != -1 and len(non_empty_txts) > take_last_count:
-        non_empty_txts = non_empty_txts[-take_last_count:]
+        # non empty txts
+    # if take_first_count != -1 and len(non_empty_txts) > take_first_count:
+    #     non_empty_txts = non_empty_txts[:take_first_count]
+    #
+    # if take_last_count != -1 and len(non_empty_txts) > take_last_count:
+    #     non_empty_txts = non_empty_txts[-take_last_count:]
 
     random.shuffle(non_empty_txts)
     train_count = int(len(non_empty_txts) * (1 - split_part))
 
-    for i, txt in enumerate(non_empty_txts):
+    for i, txt in tqdm(enumerate(non_empty_txts)):
         if i < train_count:
             shutil.copy(txt, os.path.join(training_dir, "train"))
             shutil.copy(str(txt.parent) + os.sep + txt.stem + "." + images_ext, os.path.join(training_dir, "train"))
@@ -70,18 +94,19 @@ def prepare_for_training(data_dir: str,
             shutil.copy(txt, os.path.join(training_dir, "val"))
             shutil.copy(str(txt.parent) + os.sep + txt.stem + "." + images_ext, os.path.join(training_dir, "val"))
 
-    if take_first_count != -1 and len(empty_txts) > take_first_count * 2:
-        empty_txts = empty_txts[:(2 * take_first_count)]
-
-    if take_last_count != -1 and len(empty_txts) > take_last_count * 2:
-        empty_txts = empty_txts[-(2 * take_last_count):]
+    # empty txts
+    # if take_first_count != -1 and len(empty_txts) > take_first_count * 2:
+    #     empty_txts = empty_txts[:(2 * take_first_count)]
+    #
+    # if take_last_count != -1 and len(empty_txts) > take_last_count * 2:
+    #     empty_txts = empty_txts[-(2 * take_last_count):]
 
     random.shuffle(empty_txts)
     if len(empty_txts) > 2 * len(non_empty_txts):
         empty_txts = empty_txts[:2 * len(non_empty_txts)]
     train_count = int(len(empty_txts) * (1 - split_part))
 
-    for i, txt in enumerate(empty_txts):
+    for i, txt in tqdm(enumerate(empty_txts)):
         if i < train_count:
             shutil.copy(txt, os.path.join(training_dir, "train"))
             shutil.copy(str(txt.parent) + os.sep + txt.stem + "." + images_ext, os.path.join(training_dir, "train"))
@@ -91,6 +116,13 @@ def prepare_for_training(data_dir: str,
 
     print(f"Labeled images: {len(non_empty_txts)}")
     print(f"Empty images: {len(empty_txts)}")
+    print(f"Total training images: {len(empty_txts) + len(non_empty_txts)}")
+
+    all_txts = [txt.name for txt in non_empty_txts] + [txt.name for txt in empty_txts] + prev_txts
+    previous_exp = previous_exp + 1 if previous_exp != 0 else 2
+    with open(os.path.join(training_dir, f'train_val{previous_exp}.txt'), 'w') as f:
+        for item in all_txts:
+            f.write("%s\n" % item)
 
     # create training yaml
     train_yaml = dict(
@@ -110,6 +142,7 @@ def train(source_folder_class: str,
           min_samples_count: int,
           take_first_count: int,
           take_last_count: int,
+          images_filter: List,
           model_input_image_size: int,
           batch_size: int,
           max_epochs: int,
@@ -118,13 +151,35 @@ def train(source_folder_class: str,
           test_split_part: float,
           min_mAP_095: float,
           count_of_epochs_min_map: int,
-          resume_weights: str,
           resume_epochs: int,
-          count_epochs_before_result: int) -> float:
+          count_epochs_before_result: int,
+          full_train) -> float:
     #
     mAP_095 = 0.0
+    # train
+    yaml_path = os.path.join(source_folder_class, "training", "train.yml")
+    project_path = os.path.join(source_folder_class, "training", "runs")
+    logs_path = os.path.join(source_folder_class, "training", "logs")
+    last_exp_number = get_last_exp_number(project_path)
+
     data_dir = os.path.join(source_folder_class, "data")
-    txts = get_all_files_in_folder(data_dir, ["*.txt"])
+    if images_filter:
+        txts = []
+        for filter_value in images_filter:
+            txts.extend(get_all_files_in_folder(data_dir, [f"*{filter_value}*.txt"]))
+    else:
+        txts = get_all_files_in_folder(data_dir, ["*.txt"])
+
+    prev_txts = []
+    if last_exp_number != -1:
+        if not full_train:
+            with open(
+                    os.path.join(os.path.join(source_folder_class, "training"),
+                                 f"train_val{last_exp_number}.txt")) as file:
+                prev_txts = file.readlines()
+                prev_txts = [line.rstrip() for line in prev_txts]
+
+    txts = [txt for txt in txts if txt.name not in prev_txts]
 
     non_empty_txts = []
     for txt in txts:
@@ -132,29 +187,17 @@ def train(source_folder_class: str,
         if list(lines):
             non_empty_txts.append(txt)
 
-    if len(non_empty_txts) >= min_samples_count:
-        prepare_for_training(data_dir, take_first_count, take_last_count, images_ext, split_part=test_split_part)
+    if len(non_empty_txts) >= min_samples_count or (len(prev_txts) and len(non_empty_txts)):
+        prepare_for_training(data_dir,
+                             last_exp_number,
+                             full_train,
+                             images_filter,
+                             take_first_count,
+                             take_last_count,
+                             images_ext,
+                             split_part=test_split_part)
 
-        # train
-        yaml_path = os.path.join(source_folder_class, "training", "train.yml")
-        project_path = os.path.join(source_folder_class, "training", "runs")
-        logs_path = os.path.join(source_folder_class, "training", "logs")
-
-        if resume_weights:
-            os.system(
-                f"python yolov5/train.py "
-                f"--img {model_input_image_size} "
-                f"--batch {batch_size} "
-                f"--epochs {max_epochs + resume_epochs} "
-                f"--data {yaml_path} "
-                # f"--weights {weights} "
-                f"--project {project_path} "
-                f"--min_map {min_mAP_095} "
-                f"--count_of_epochs_min_map {count_of_epochs_min_map} "
-                f"--min_epochs {min_epochs} "
-                f"--resume {resume_weights} "
-                f"--count_epochs_before_result {count_epochs_before_result}")
-        else:
+        if last_exp_number == -1 or full_train:
             os.system(
                 f"python yolov5/train.py "
                 f"--img {model_input_image_size} "
@@ -167,6 +210,24 @@ def train(source_folder_class: str,
                 f"--count_of_epochs_min_map {count_of_epochs_min_map} "
                 f"--min_epochs {min_epochs} "
                 f"--count_epochs_before_result {count_epochs_before_result}")
+        else:
+            last_exp_number_str = str(last_exp_number) if last_exp_number != 0 else ''
+            weights_path = os.path.join(source_folder_class, "training", "runs", f"exp{last_exp_number_str}", "weights",
+                                        "last.pt")
+            hyp = "yolov5/data/hyps/hyp.scratch-med.yaml"
+            os.system(
+                f"python yolov5/train.py "
+                f"--img {model_input_image_size} "
+                f"--batch {batch_size} "
+                f"--epochs {5000} "
+                f"--data {yaml_path} "
+                f"--weights {weights_path} "
+                f"--project {project_path} "
+                f"--min_map {0} "
+                f"--count_of_epochs_min_map {resume_epochs} "
+                f"--min_epochs {resume_epochs} "
+                f"--count_epochs_before_result {0} "
+                f"--hyp {hyp}")
 
         # check results
         results = []
@@ -184,6 +245,7 @@ def train(source_folder_class: str,
 
     else:
         print(f"Count of labeled images: {len(non_empty_txts)}/{min_samples_count}")
+
     return mAP_095
 
 
@@ -191,7 +253,7 @@ def parse_opt(known=False):
     parser = argparse.ArgumentParser()
     parser.add_argument('project_name', type=str, help='project folder name')
     parser.add_argument('class_for_training', type=str, help='Name of class for training')
-    parser.add_argument('--resume_weights', type=str)
+    parser.add_argument('--full_train', action="store_true", help='Training with all images')
 
     opt = parser.parse_known_args()[0] if known else parser.parse_args()
     return opt
@@ -201,7 +263,7 @@ if __name__ == "__main__":
     opt = parse_opt()
     project_name = opt.project_name
     class_for_training = opt.class_for_training
-    resume_weights = opt.resume_weights
+    full_train = opt.full_train
 
     config_file = os.path.join("data", project_name, "labeling_config.yaml")
     labeling_config = read_config(config_file)
@@ -240,6 +302,7 @@ if __name__ == "__main__":
         resume_epochs = labeling_config['resume_epochs']
         take_last_count = labeling_config['take_last_count']
         take_first_count = labeling_config['take_first_count']
+        images_filter = labeling_config['images_filter']
         count_epochs_before_result = labeling_config['count_epochs_before_result']
 
         # Inference params
@@ -252,6 +315,7 @@ if __name__ == "__main__":
                         min_samples_count,
                         take_first_count,
                         take_last_count,
+                        images_filter,
                         model_input_image_size,
                         batch_size,
                         max_epochs,
@@ -260,9 +324,9 @@ if __name__ == "__main__":
                         test_split_part,
                         min_mAP_095,
                         count_of_epochs_min_map,
-                        resume_weights,
                         resume_epochs,
-                        count_epochs_before_result)
+                        count_epochs_before_result,
+                        full_train)
 
         if mAP_095 >= min_mAP_095:
             project_path = os.path.join(source_folder_class, "training", "runs")
@@ -276,7 +340,7 @@ if __name__ == "__main__":
         else:
             now = datetime.now()
             next_training_time = now + timedelta(minutes=sleep_training_min)
-            print(f"\nAttempt {attempt}/{max_training_attempts}")
+            print(f"Attempt {attempt}/{max_training_attempts}")
             print(f"Current mAP {mAP_095} is below than {min_mAP_095}")
             print(f"Next train at: {next_training_time.strftime('%H:%M:%S')}\n")
             time.sleep(sleep_training_min * 60)
